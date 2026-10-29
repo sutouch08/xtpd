@@ -1,0 +1,1 @@
+<div class="col-lg-2-harf col-md-harf hidden-sm hidden-xs padding-5">&nbsp;</div> 
