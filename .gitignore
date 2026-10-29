@@ -1,3 +1,15 @@
+
+*.png
+*.jpg
+*.gif
+*.ico
+*.mp3
+*.pdf
+*.xls
+*.xlsx
+*.bat
+*.vbs
+.htaccess
 index.php
 /application/config/config.php
 /application/config/database.php
