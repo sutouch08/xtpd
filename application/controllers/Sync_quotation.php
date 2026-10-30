@@ -179,9 +179,4 @@ class Sync_quotation extends CI_Controller
     return $this->db->where('code', $code)->update('quotation', $ds);
   }
 
-
-
-
-} //--- end class
-
- ?>
+} 

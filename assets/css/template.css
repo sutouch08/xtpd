@@ -2018,6 +2018,11 @@ input[type=number]::-webkit-outer-spin-button {
 	padding: 5px !important;
 }
 
+.table-narrow thead > tr > th, .table-narrow tbody > tr > td {
+	font-size: 12px;
+	padding: 5px !important;
+}
+
 input[type=checkbox].ace.ace-switch.ace-switch-6:checked + .lbl::before {
 	background-color: #4CAF50 !important;
 }

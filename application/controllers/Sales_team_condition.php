@@ -16,7 +16,6 @@ class Sales_team_condition extends PS_Controller
 		$this->load->helper('approve');
   }
 
-
 	public function index()
 	{
 		$filter = array(
@@ -25,20 +24,15 @@ class Sales_team_condition extends PS_Controller
 			'area_id' => get_filter('area_id', 'con_area_id', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->sales_team_condition_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
 		$result = $this->sales_team_condition_model->get_list($filter, $perpage, $this->uri->segment($segment));
 
 		if( ! empty($result))
@@ -79,9 +73,8 @@ class Sales_team_condition extends PS_Controller
 			}
 		}
 
-
 		$filter['data'] = $result;
-
+		$init	= pagination_config($this->home . '/index/', $rows, $perpage, $segment);
 		$this->pagination->initialize($init);
 		$this->load->view('sales_team_condition/sales_team_condition_list', $filter);
 	}
@@ -96,7 +89,7 @@ class Sales_team_condition extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -104,8 +97,7 @@ class Sales_team_condition extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-
-		$ds = json_decode($this->input->post('data'));
+		$ds = json_decode($this->input->post('data') ?? '');
 
 		if( ! empty($ds) && ! empty($ds->team_id) && ! empty($ds->area) && ! empty($ds->approver))
 		{
@@ -195,7 +187,6 @@ class Sales_team_condition extends PS_Controller
 			$this->error = get_error_message('required');
 		}
 
-
 		$this->_response($sc);
 	}
 
@@ -243,7 +234,7 @@ class Sales_team_condition extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->area) && ! empty($ds->team_id) && ! empty($ds->approver))
 			{
@@ -452,7 +443,4 @@ class Sales_team_condition extends PS_Controller
 		return clear_filter($filter);
 	}
 
-}//--- end class
-
-
- ?>
+}

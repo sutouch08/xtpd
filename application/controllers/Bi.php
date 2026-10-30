@@ -6,8 +6,7 @@ class Bi extends PS_Controller
 	public $title = 'Power BI';
 	public $menu_code = '';
 	public $menu_group_code = '';
-	public $error;
-
+	
 	public function __construct()
 	{
 		parent::__construct();
@@ -35,7 +34,4 @@ class Bi extends PS_Controller
 			echo "not found";
 		}
 	}
-
-
-
-} //--- end class
+} 

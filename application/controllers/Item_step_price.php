@@ -15,7 +15,6 @@ class Item_step_price extends PS_Controller
 		$this->load->model('item_model');
   }
 
-
 	public function index()
 	{
 		$filter = array(
@@ -23,24 +22,17 @@ class Item_step_price extends PS_Controller
 			'status' => get_filter('status', 'item_status', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->item_step_price_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$filter['data'] = $this->item_step_price_model->get_list($filter, $perpage, $this->uri->segment($segment));
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->item_step_price_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $result;
-
 		$this->pagination->initialize($init);
 		$this->load->view('item_step_price/item_step_price_list', $filter);
 	}
@@ -55,7 +47,7 @@ class Item_step_price extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -148,7 +140,7 @@ class Item_step_price extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -157,10 +149,9 @@ class Item_step_price extends PS_Controller
 	{
 		$sc = TRUE;
 
-
 		if($this->pm->can_add OR $this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '');
 
 			if( ! empty($ds))
 			{
@@ -331,8 +322,4 @@ class Item_step_price extends PS_Controller
 
 		return clear_filter($filter);
 	}
-
-}//--- end class
-
-
- ?>
+}

@@ -1,13 +1,12 @@
 <?php
 
-function select_currency($code = NULL)
+function select_currency($code = '')
 {
   $ci =& get_instance();
   $ci->load->model('currency_model');
   $code = (empty($code) ? getConfig('CURRENCY') : $code);
   $code = $code === '##' ? getConfig('CURRENCY') : $code;
   $sc = "";
-
   $currency = $ci->currency_model->get_list();
 
   if(!empty($currency))
@@ -22,7 +21,7 @@ function select_currency($code = NULL)
 }
 
 
-function select_country($code = NULL)
+function select_country($code = '')
 {
   $sc = '';
   $CI =& get_instance();
@@ -34,7 +33,7 @@ function select_country($code = NULL)
     $df = getConfig('COUNTRY');
     foreach($options as $rs)
     {
-      if($code === NULL)
+      if($code === '')
       {
         $sc .= '<option value="'.$rs->code.'" '.is_selected($df, $rs->code).'>'.$rs->name.'</option>';
       }
@@ -47,6 +46,3 @@ function select_country($code = NULL)
 
   return $sc;
 }
-
-
- ?>

@@ -12,8 +12,7 @@ class Step_rule extends PS_Controller
     parent::__construct();
     $this->home = base_url().'step_rule';
 		$this->load->model('step_rule_model');
-		$this->load->helper('price_list');
-		//$this->load->helper('orders');
+		$this->load->helper('price_list');		
   }
 
 
@@ -25,25 +24,18 @@ class Step_rule extends PS_Controller
 			'status' => get_filter('status', 'step_status', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->step_rule_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->step_rule_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $result;
+		$filter['data'] = $this->step_rule_model->get_list($filter, $perpage, $this->uri->segment($segment));		 
 		$filter['priceList'] = $this->user_model->get_all_price_list_array();
-
+		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
 		$this->pagination->initialize($init);
 		$this->load->view('step_rule/step_rule_list', $filter);
 	}
@@ -57,7 +49,7 @@ class Step_rule extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -65,7 +57,7 @@ class Step_rule extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$ds = json_decode($this->input->post('data'));
+		$ds = json_decode($this->input->post('data') ?? '{}');
 
 		if($this->pm->can_add)
 		{
@@ -132,7 +124,7 @@ class Step_rule extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -140,7 +132,7 @@ class Step_rule extends PS_Controller
 	public function update()
 	{
 		$sc = TRUE;
-		$ds = json_decode($this->input->post('data'));
+		$ds = json_decode($this->input->post('data') ?? '{}');
 
 		if($this->pm->can_add OR $this->pm->can_edit)
 		{
@@ -190,7 +182,7 @@ class Step_rule extends PS_Controller
 
 		if($this->pm->can_add OR $this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds))
 			{
@@ -406,16 +398,8 @@ class Step_rule extends PS_Controller
 
 	public function is_exists($price_list)
 	{
-		if($this->step_rule_model->is_exists_price_list($price_list))
-		{
-			echo 'exists';
-		}
-		else
-		{
-			echo 'not exists';
-		}
+		echo $this->step_rule_model->is_exists_price_list($price_list) ? 'exists' : 'not exists';		
 	}
-
 
   public function clear_filter()
 	{
@@ -428,7 +412,4 @@ class Step_rule extends PS_Controller
 		return clear_filter($filter);
 	}
 
-}//--- end class
-
-
- ?>
+}

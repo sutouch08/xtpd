@@ -1,9 +1,10 @@
 <?php
 function _check_login()
 {
-  $CI =& get_instance();
+  $ci =& get_instance();
   $uid = get_cookie('uid');
-  if($uid === NULL OR $CI->user_model->verify_uid($uid) === FALSE)
+
+  if(empty($uid) || ! $ci->user_model->verify_uid($uid))
   {
     redirect(base_url().'authentication');
     exit;
@@ -16,56 +17,44 @@ function get_permission($menu)
 
   if(empty($ci->_user))
   {
-    return reject_permission();
+    return $ci->user_model->reject_permission();
   }
 
   //--- If super admin
   if($ci->_user->ugroup_id == -987654321)
   {
-    $pm = new stdClass();
-    $pm->can_view = 1;
-    $pm->can_add = 1;
-    $pm->can_edit = 1;
-    $pm->can_delete = 1;
+    return $ci->user_model->grant_all_permission();
   }
-  else
-  {
-    $pm = $ci->user_model->get_permission($menu, $ci->_user->uid, $ci->_user->ugroup_id);
 
-    if(empty($pm))
-    {
-      return reject_permission();
-    }
-    else
-    {
-      if(getConfig('CLOSE_SYSTEM') == 2 && $menu != 'CLOSE_SYSTEM')
-      {
-        $pm->can_add = 0;
-        $pm->can_edit = 0;
-        $pm->can_delete = 0;
-      }
-    }
-  }
+  $pm = $ci->user_model->get_permission($menu, $ci->_user->uid, $ci->_user->ugroup_id);
+
+  if(getConfig('CLOSE_SYSTEM') == 2 && $menu != 'CLOSE_SYSTEM')
+  {
+    $pm->can_add = 0;
+    $pm->can_edit = 0;
+    $pm->can_delete = 0;
+  }  
 
   return $pm;
 }
 
 function reject_permission()
 {
-  $pm = new stdClass();
-  $pm->can_view = 0;
-  $pm->can_add = 0;
-  $pm->can_edit = 0;
-  $pm->can_delete = 0;
-  return $pm;
+  return (object) [
+    'can_view' => 0,
+    'can_add' => 0,
+    'can_edit' => 0,
+    'can_delete' => 0
+  ];
 }
 
 
-function select_user_group($id = NULL)
+function select_user_group($id = '')
 {
   $ds = '';
-  $CI =& get_instance();
-  $qs = $CI->user_model->get_all_user_group();
+  $ci =& get_instance();
+  $qs = $ci->user_model->get_all_user_group();
+
   if(!empty($qs))
   {
     foreach($qs as $rs)
@@ -81,13 +70,13 @@ function select_user_group($id = NULL)
 function user_condition_label($user_id)
 {
   $ds = "";
-
   $ci =& get_instance();
   $team = $ci->user_model->get_user_condition($user_id);
 
   if(!empty($team))
   {
     $i = 1;
+
     foreach($team as $rs)
     {
       $ds .= $i == 1 ? $rs->team_name : ", {$rs->team_name}";
@@ -99,10 +88,9 @@ function user_condition_label($user_id)
 }
 
 
-function select_user_id($id = NULL)
+function select_user_id($id = '')
 {
   $ds = '';
-
   $ci =& get_instance();
   $users = $ci->user_model->get_all();
 
@@ -118,10 +106,9 @@ function select_user_id($id = NULL)
 }
 
 
-function select_uname($uname = NULL)
+function select_uname($uname = '')
 {
   $ds = '';
-
   $ci =& get_instance();
   $users = $ci->user_model->get_all();
 
@@ -137,11 +124,12 @@ function select_uname($uname = NULL)
 }
 
 
-function select_saleman($sale_id = NULL)
+function select_saleman($sale_id = '')
 {
   $ds = '';
-  $CI =& get_instance();
-  $qs = $CI->user_model->get_all_slp();
+  $ci =& get_instance();
+  $qs = $ci->user_model->get_all_slp();
+
   if(!empty($qs))
   {
     foreach($qs as $rs)
@@ -154,11 +142,12 @@ function select_saleman($sale_id = NULL)
 }
 
 
-function select_employee($id = NULL)
+function select_employee($id = '')
 {
   $ds = '';
-  $CI =& get_instance();
-  $qs = $CI->user_model->get_all_employee();
+  $ci =& get_instance();
+  $qs = $ci->user_model->get_all_employee();
+
   if(!empty($qs))
   {
     foreach($qs as $rs)
@@ -170,7 +159,7 @@ function select_employee($id = NULL)
   return $ds;
 }
 
-function select_area($id = NULL)
+function select_area($id = '')
 {
   $ds = '';
   $ci =& get_instance();
@@ -188,50 +177,31 @@ function select_area($id = NULL)
 }
 
 
-function get_sale_name($sale_id)
+function get_sale_name($sale_id = '')
 {
   $ci =& get_instance();
-
   return $ci->user_model->get_saleman_name($sale_id);
-
 }
 
 
-function uname($id)
+function uname($id = '')
 {
   $ci =& get_instance();
-
-  if( ! empty($id))
-  {
-    return $ci->user_model->get_uname($id);
-  }
-
-  return NULL;
-}
-
-function emp_name($uname)
-{
-  $ci =& get_instance();
-
-  if( ! empty($uname))
-  {
-    return $ci->user_model->get_name($uname);
-  }
-
-  return NULL;
+  return $ci->user_model->get_uname($id);  
 }
 
 
-function emp_name_by_id($id)
+function emp_name($uname = '')
 {
   $ci =& get_instance();
+  return $ci->user_model->get_name($uname);
+}
 
-  if( ! empty($id))
-  {
-    return $ci->user_model->get_name_by_id($id);
-  }
 
-  return NULL;
+function emp_name_by_id($id = '')
+{
+  $ci =& get_instance();
+  return $ci->user_model->get_name_by_id($id);  
 }
 
 function users_array()
@@ -254,5 +224,3 @@ function users_array()
 
   return $arr;
 }
-
- ?>

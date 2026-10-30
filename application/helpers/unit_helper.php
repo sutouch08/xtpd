@@ -2,9 +2,9 @@
 function select_unit($code = '')
 {
   $sc = '';
-  $CI =& get_instance();
-  $CI->load->model('masters/unit_model');
-  $options = $CI->unit_model->get_data(); //--- OUOM
+  $ci =& get_instance();
+  $ci->load->model('masters/unit_model');
+  $options = $ci->unit_model->get_data(); //--- OUOM
 
   if(!empty($options))
   {
@@ -17,5 +17,3 @@ function select_unit($code = '')
   return $sc;
 }
 
-
- ?>

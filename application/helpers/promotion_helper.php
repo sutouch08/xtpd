@@ -1,12 +1,10 @@
 <?php
 
-function select_promotion($id = NULL)
+function select_promotion($id = '')
 {
   $sc = "<option value=''>No active promotion found</option>";
-
   $ci =& get_instance();
   $ci->load->model('promotion_model');
-
   $list = $ci->promotion_model->get_all_active_promotion();
 
   if(!empty($list))
@@ -21,4 +19,3 @@ function select_promotion($id = NULL)
   return $sc;
 }
 
- ?>

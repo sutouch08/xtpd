@@ -10,13 +10,10 @@ class Authentication extends CI_Controller
 		$this->home = base_url()."authentication";    
 	}
 
-
 	public function index()
 	{
 		$this->load->view("login");
 	}
-
-
 
 	public function validate_credentials()
 	{
@@ -57,9 +54,7 @@ class Authentication extends CI_Controller
     echo $sc === TRUE ? 'success' : $this->error;
 	}
 
-
-
-  public function create_user_data(array $ds = array(), $remember )
+  public function create_user_data(array $ds = array(), $remember = 0)
   {
     if(!empty($ds))
     {
@@ -79,18 +74,10 @@ class Authentication extends CI_Controller
     }
   }
 
-
-
-
 	public function logout()
 	{
 		delete_cookie('uid');
     delete_cookie('uname');
     redirect($this->home);
 	}
-
-
-} //--- end class
-
-
- ?>
+}

@@ -1,11 +1,10 @@
 <?php
 
-function select_sale_team($id = NULL)
+function select_sale_team($id = '')
 {
   $sc = "";
   $ci =& get_instance();
   $ci->load->model('sales_team_model');
-
   $teams = $ci->sales_team_model->get_all_team();
 
   if(!empty($teams))
@@ -20,12 +19,11 @@ function select_sale_team($id = NULL)
 }
 
 
-function select_sale_person($id = NULL)
+function select_sale_person($id = '')
 {
   $sc = "";
   $ci =& get_instance();
   $ci->load->model('sale_person_model');
-
   $list = $ci->sale_person_model->get_all();
 
   if(!empty($list))
@@ -40,27 +38,17 @@ function select_sale_person($id = NULL)
 }
 
 
-function sale_person_name($id)
+function sale_person_name($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('sale_person_model');
-
-  $rs = $ci->sale_person_model->get($id);
-
-  if(!empty($rs))
-  {
-    return $rs->name;
-  }
-
-  return NULL;
+  return $ci->sale_person_model->get_name($id);
 }
 
 
-function customer_team_name($id)
+function customer_team_name($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('customer_team_model');
   return $ci->customer_team_model->get_name($id);
 }
-
-?>

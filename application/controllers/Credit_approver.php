@@ -28,6 +28,12 @@ class Credit_approver extends PS_Controller
 			'can_review' => get_filter('can_review', 'ap_can_review', 'all')
 		);
 
+		if($this->input->post('search'))
+		{
+			redirect($this->home);
+			exit;
+		}
+
 		//--- แสดงผลกี่รายการต่อหน้า
 		$perpage = get_rows();
 		$rows = $this->credit_approver_model->count_rows($filter);
@@ -48,7 +54,7 @@ class Credit_approver extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -136,7 +142,6 @@ class Credit_approver extends PS_Controller
 			if (! empty($ap))
 			{
 				$ds['data'] = $ap;
-
 				$this->load->view('credit_approver/approver_edit', $ds);
 			}
 			else
@@ -146,7 +151,7 @@ class Credit_approver extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -157,7 +162,7 @@ class Credit_approver extends PS_Controller
 
 		if ($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if (! empty($ds) && ! empty($ds->id))
 			{

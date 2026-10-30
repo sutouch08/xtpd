@@ -508,7 +508,7 @@ if ( ! function_exists('url_title'))
 			$str = strtolower($str);
 		}
 
-		return trim(trim($str, $separator));
+		return trim(trim($str ?? '', $separator));
 	}
 }
 

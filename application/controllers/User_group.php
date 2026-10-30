@@ -14,8 +14,6 @@ class User_group extends PS_Controller
 		$this->load->model('user_group_model');
   }
 
-
-
   public function index()
   {
 		$this->title = "Users Group - List";
@@ -24,20 +22,15 @@ class User_group extends PS_Controller
 			'name' => get_filter('name', 'ugroup_name', '')
 		);
 
-				//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))		
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->user_group_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
 		$result = $this->user_group_model->get_list($filter, $perpage, $this->uri->segment($segment));
 
 		if(!empty($result))
@@ -48,13 +41,11 @@ class User_group extends PS_Controller
 			}
 		}
 
-
     $filter['data'] = $result;
-
+		$init	= pagination_config($this->home . '/index/', $rows, $perpage, $segment);
 		$this->pagination->initialize($init);
     $this->load->view('user_group/user_group_list', $filter);
   }
-
 
 
 	public function add_new()
@@ -67,7 +58,7 @@ class User_group extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -75,7 +66,7 @@ class User_group extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 
 		if(!empty($name))
 		{
@@ -139,7 +130,7 @@ class User_group extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -151,7 +142,7 @@ class User_group extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$name = trim($this->input->post('name'));
+			$name = trim($this->input->post('name') ?? '');
 
 			if(!empty($name))
 			{
@@ -279,16 +270,14 @@ class User_group extends PS_Controller
 			}
 			else
 			{
-				$this->deny_page();
+				$this->deny_page(TRUE);
 			}
 		}
 		else
 		{
 			$this->error_page();
 		}
-
 	}
-
 
 
 	public function update_permission()
@@ -334,7 +323,6 @@ class User_group extends PS_Controller
 				$sc = FALSE;
 				$this->error = "Missing permission";
 			}
-
 		}
 		else
 		{
@@ -383,8 +371,6 @@ class User_group extends PS_Controller
 							);
 
 							array_push($mgroup['menu'], $arr);
-
-
 						}
 					}
 				}
@@ -400,15 +386,7 @@ class User_group extends PS_Controller
 
   public function clear_filter()
 	{
-		$filter = array(
-			'ugroup_name'
-		);
-
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter('ugroup_name');
 	}
 
-}//--- end class
-
-
- ?>
+}

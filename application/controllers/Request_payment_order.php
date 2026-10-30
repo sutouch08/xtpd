@@ -30,6 +30,12 @@ class Request_payment_order extends PS_Controller
       'reply_status' => get_filter('reply_status', 'rpo_reply_status', 'N')
     );
 
+    if($this->input->post('search'))
+    {
+      redirect($this->home);
+      exit;
+    }
+
     $perpage = get_rows();
     $rows = $this->payment_request_model->count_rows($filter);
     $filter['data'] = $this->payment_request_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
@@ -414,7 +420,6 @@ class Request_payment_order extends PS_Controller
     {
       $list[] = ['nodata' => 'No authorizer'];
     }
-
 
     echo json_encode($list);
   }

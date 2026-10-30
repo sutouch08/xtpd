@@ -1,5 +1,3 @@
-var HOME = BASE_URL + 'approve_rule/';
-
 function goBack() {
   window.location.href = HOME;
 }
@@ -11,7 +9,7 @@ function goAdd() {
 
 
 function goEdit(id) {
-  window.location.href = HOME + 'edit/'+id;
+  window.location.href = HOME + 'edit/' + id;
 }
 
 
@@ -19,24 +17,24 @@ function add() {
   clearErrorByClass('e');
 
   let h = {
-    'conditions' : $('#conditions').val(),
-    'amount' : parseDefault(parseFloat($('#amount').val()), 0),
-    'sale_team' : $('#sale_team').val(),
-    'is_price_list' : $('#is_price_list').is(':checked') ? 1 : 0,
-    'status' : $('#status').is(':checked') ? 1 : 0
+    'conditions': $('#conditions').val(),
+    'amount': parseDefault(parseFloat($('#amount').val()), 0),
+    'sale_team': $('#sale_team').val(),
+    'is_price_list': $('#is_price_list').is(':checked') ? 1 : 0,
+    'status': $('#status').is(':checked') ? 1 : 0
   }
 
-  if(h.conditions == '') {
+  if (h.conditions == '') {
     $('#conditions').hasError('Required');
     return false;
   }
 
-  if(h.sale_team == '') {
+  if (h.sale_team == '') {
     $('#sale_team').hasError('Required');
     return false;
   }
 
-  if(h.amount <= 0) {
+  if (h.amount <= 0) {
     $('#amount').hasError('Amount must Greater than 0');
     $('#amount').focus();
     return false;
@@ -45,23 +43,23 @@ function add() {
   load_in();
 
   $.ajax({
-    url:HOME + 'add',
-    type:'POST',
-    cache:false,
-    data:{
-      'data' : JSON.stringify(h)
+    url: HOME + 'add',
+    type: 'POST',
+    cache: false,
+    data: {
+      'data': JSON.stringify(h)
     },
-    success:function(rs) {
+    success: function (rs) {
       load_out();
 
-      if(rs.trim() === 'success') {
+      if (rs.trim() === 'success') {
         swal({
-          title:'Success',
-          type:'success',
-          timer:1000
+          title: 'Success',
+          type: 'success',
+          timer: 1000
         });
 
-        setTimeout(function(){
+        setTimeout(function () {
           goAdd();
         }, 1200);
       }
@@ -69,7 +67,7 @@ function add() {
         showError(rs);
       }
     },
-    error:function(rs) {
+    error: function (rs) {
       load_out();
       showError(rs);
     }
@@ -81,25 +79,25 @@ function update() {
   clearErrorByClass('e');
 
   let h = {
-    'id' : $('#id').val(),
-    'conditions' : $('#conditions').val(),
-    'amount' : parseDefault(parseFloat($('#amount').val()), 0),
-    'sale_team' : $('#sale_team').val(),
-    'is_price_list' : $('#is_price_list').is(':checked') ? 1 : 0,
-    'status' : $('#status').is(':checked') ? 1 : 0
+    'id': $('#id').val(),
+    'conditions': $('#conditions').val(),
+    'amount': parseDefault(parseFloat($('#amount').val()), 0),
+    'sale_team': $('#sale_team').val(),
+    'is_price_list': $('#is_price_list').is(':checked') ? 1 : 0,
+    'status': $('#status').is(':checked') ? 1 : 0
   }
 
-  if(h.conditions == '') {
+  if (h.conditions == '') {
     $('#conditions').hasError('Required');
     return false;
   }
 
-  if(h.sale_team == '') {
+  if (h.sale_team == '') {
     $('#sale_team').hasError('Required');
     return false;
   }
 
-  if(h.amount <= 0) {
+  if (h.amount <= 0) {
     $('#amount').hasError('Amount must Greater than 0');
     $('#amount').focus();
     return false;
@@ -108,23 +106,23 @@ function update() {
   load_in();
 
   $.ajax({
-    url:HOME + 'update',
-    type:'POST',
-    cache:false,
-    data:{
-      'data' : JSON.stringify(h)
+    url: HOME + 'update',
+    type: 'POST',
+    cache: false,
+    data: {
+      'data': JSON.stringify(h)
     },
-    success:function(rs) {
+    success: function (rs) {
       load_out();
 
-      if(rs.trim() === 'success') {
+      if (rs.trim() === 'success') {
         swal({
-          title:'Success',
-          type:'success',
-          timer:1000
+          title: 'Success',
+          type: 'success',
+          timer: 1000
         });
 
-        setTimeout(function(){
+        setTimeout(function () {
           window.location.reload();
         }, 1200);
       }
@@ -132,7 +130,7 @@ function update() {
         showError(rs);
       }
     },
-    error:function(rs) {
+    error: function (rs) {
       load_out();
       showError(rs);
     }
@@ -141,47 +139,72 @@ function update() {
 
 
 
-  function getDelete(id, name){
-    swal({
-      title:'Are sure ?',
-      text:'Do you really want to delete '+ name +' ? <br/> This process cannot be undone.',
-      type:'warning',
-      showCancelButton: true,
-  		confirmButtonColor: '#FA5858',
-  		confirmButtonText: 'Delete',
-  		cancelButtonText: 'Cancle',
-  		closeOnConfirm: false,
-      html:true
-    },function(){
-      $.ajax({
-        url: HOME + 'delete',
-        type:'POST',
-        cache:false,
-        data:{
-          'id' : id
-        },
-        success:function(rs){
-          if(rs == 'success'){
-            swal({
-              title:'Success',
-              text:'Approve rule has been deleted',
-              type:'success',
-              time: 1000
-            });
+function getDelete(id, name) {
+  swal({
+    title: 'Are sure ?',
+    text: 'Do you really want to delete ' + name + ' ? <br/> This process cannot be undone.',
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#FA5858',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancle',
+    closeOnConfirm: false,
+    html: true
+  }, function () {
+    $.ajax({
+      url: HOME + 'delete',
+      type: 'POST',
+      cache: false,
+      data: {
+        'id': id
+      },
+      success: function (rs) {
+        if (rs == 'success') {
+          swal({
+            title: 'Success',
+            text: 'Approve rule has been deleted',
+            type: 'success',
+            time: 1000
+          });
 
-            setTimeout(function(){
-              window.location.reload();
-            }, 1500)
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500)
 
-          }
-          else {
-            swal({
-              title:'Error!',
-              text:rs,
-              type:'error'
-            });
-          }
         }
-      })
+        else {
+          swal({
+            title: 'Error!',
+            text: rs,
+            type: 'error'
+          });
+        }
+      }
     })
-  }
+  })
+}
+
+function toggleActive(id, el) {
+  let status = $(el).is(':checked') ? 1 : 0;
+
+  $.ajax({
+    url: `${HOME}set_active`,
+    type: 'POST',
+    cache: false,
+    data: {
+      'id': id,
+      'status': status
+    },
+    success: function (rs) {
+      if (rs.trim() != 'success') {
+        showError(rs);
+        $(el).prop('checked', !status);
+      }
+    },
+    error: function (rs) {
+      showError(rs);
+      $(el).prop('checked', !status);
+    }
+  })
+}
+

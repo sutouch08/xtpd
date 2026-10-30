@@ -69,10 +69,8 @@ class Step_rule_check extends PS_Controller
 	{
 		$sc = TRUE;
 		$ds = array();
-		$code = trim($this->input->post('itemCode'));
-		$PriceList = $this->input->post('priceList');
-
-		// print_r($this->input->post());
+		$code = trim($this->input->post('itemCode') ?? '');
+		$PriceList = $this->input->post('priceList');	
 
 		if( ! empty($PriceList) && ! empty($code))
 		{
@@ -134,8 +132,4 @@ class Step_rule_check extends PS_Controller
 
 		echo json_encode($arr);
 	}
-
-}//--- end class
-
-
- ?>
+}

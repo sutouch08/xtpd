@@ -23,6 +23,7 @@ class Credit_approval extends PS_Controller
   public function index()
   {
     $this->title = "Credit Approval - List";
+
     $filter = array(
       'WebCode' => get_filter('WebCode', 'capv_code', ''),
       'CardCode' => get_filter('CardCode', 'capv_customer', ''),
@@ -34,8 +35,13 @@ class Credit_approval extends PS_Controller
       'to_date' => get_filter('to_date', 'capv_to_date', '')
     );
 
-    $apv = $this->credit_approver_model->get_active_by_user_id($this->_user->id);
+    if($this->input->post('search'))
+    {
+      redirect($this->home);
+      exit;
+    }
 
+    $apv = $this->credit_approver_model->get_active_by_user_id($this->_user->id);
     $perpage = get_rows();
     $rows = empty($apv) ? 0 : $this->credit_approval_model->count_rows($filter);
     $filter['data'] = empty($apv) ? NULL : $this->credit_approval_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
@@ -50,7 +56,7 @@ class Credit_approval extends PS_Controller
       }
     }
 
-    $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+    $init = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
     $this->pagination->initialize($init);
     $this->load->view('credit_approval/credit_approval_list', $filter);
   }
@@ -58,8 +64,7 @@ class Credit_approval extends PS_Controller
   private function get_file_list($code)
   {
     $list = array();    
-    $file_path = $this->config->item('user_files_path') . 'request_payment/' . $code . '/';
-    
+    $file_path = $this->config->item('user_files_path') . 'request_payment/' . $code . '/';    
 
     if (is_dir($file_path))
     {
@@ -113,7 +118,6 @@ class Credit_approval extends PS_Controller
     header('Content-Type: ' . $mime);
     header('Content-Disposition: inline; filename="' . $filename . '"');
     header('Content-Length: ' . filesize($path));
-
     readfile($path);
   }
 
@@ -259,6 +263,7 @@ class Credit_approval extends PS_Controller
       if (!empty($details))
       {
         $no = 1;
+
         foreach ($details as $rs)
         {
           $totalBefDi += $rs->LineTotal;
@@ -266,10 +271,12 @@ class Credit_approval extends PS_Controller
           if($rs->free_item == 0)
           {
             $open_qty = (!empty($doc->DocNum) ? $this->orders_model->get_open_qty($doc->code, $rs->ItemCode) : ($rs->freeQty + $rs->Qty));
+            $status = $doc->credit_approval == 'P' ? 'P' : $rs->status;
+
             $ds['items'][] = array(
               'no' => $no,
               'id' => $rs->id,
-              //'itemCode' => $rs->ItemCode,
+              'itemCode' => $rs->ItemCode,
               'itemName' => $rs->ItemName,
               'qty' => number($rs->Qty, 2),
               'free' => number($rs->freeQty, 2),
@@ -280,8 +287,8 @@ class Credit_approval extends PS_Controller
               'amount' => number($rs->LineTotal, 2),
               'dis' => $rs->discount_sales == 1 ? '<i class="fa fa-check blue"></i>' : '',
               'lineText' => $rs->LineText,
-              'checkbox' => get_checkbox($rs->id, $rs->status, $can_approve, $no), //--- orders_helper
-              'rejectbox' => ($rs->status == 'P' ? get_rejectbox($rs->id, $rs->status, $can_approve, $no) : $rs->reject_text)
+              'checkbox' => get_checkbox($rs->id, $status, $can_approve, $no), //--- orders_helper
+              'rejectbox' => ($status == 'P' ? get_rejectbox($rs->id, $status, $can_approve) : $rs->reject_text)
             );
 
             $no++;
@@ -514,7 +521,7 @@ class Credit_approval extends PS_Controller
     $sc = TRUE;
     $code = NULL;
     $doc = NULL;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '');
 
     if(empty($ds))
     {
@@ -622,7 +629,7 @@ class Credit_approval extends PS_Controller
     $sc = TRUE;
     $code = NULL;
     $doc = NULL;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '');
 
     if(empty($ds))
     {
@@ -756,7 +763,6 @@ class Credit_approval extends PS_Controller
     {
       $list[] = ['nodata' => 'No authorizer'];
     }
-
 
     echo json_encode($list);
   }

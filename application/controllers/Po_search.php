@@ -29,16 +29,15 @@ class Po_search extends PS_Controller
     if ($this->input->post('search'))
     {
       redirect($this->home);
+      exit;
     }
-    else
-    {
-      $perpage = get_rows();      
-      $rows = $this->po_search_model->count_rows($filter);
-      $filter['data'] = $this->po_search_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
-      $init = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
-      $this->pagination->initialize($init);
-      $this->load->view('po_search/po_search_list', $filter);
-    }
+
+    $perpage = get_rows();
+    $rows = $this->po_search_model->count_rows($filter);
+    $filter['data'] = $this->po_search_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
+    $init = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+    $this->pagination->initialize($init);
+    $this->load->view('po_search/po_search_list', $filter);
   }
 
 
@@ -126,4 +125,4 @@ class Po_search extends PS_Controller
     $filter = array('po_web_code', 'po_inv_code', 'po_po', 'po_customer', 'po_fromDate', 'po_toDate', 'po_has_file');
     clear_filter($filter);
   }
-} // end class 
+}

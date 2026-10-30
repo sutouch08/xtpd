@@ -4,9 +4,7 @@ function select_warehouse($code = NULL)
 {
   $sc = "";
   $ci =& get_instance();
-
   $ci->load->model('warehouse_model');
-
   $options = $ci->warehouse_model->get_warehouse_list();
 
   if(!empty($options))
@@ -19,6 +17,3 @@ function select_warehouse($code = NULL)
 
   return $sc;
 }
-
-
- ?>

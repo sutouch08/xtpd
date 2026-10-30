@@ -6,7 +6,6 @@ class Main extends PS_Controller
 	public $title = 'Welcome';
 	public $menu_code = '';
 	public $menu_group_code = '';
-	public $error;
 
 	public function __construct()
 	{
@@ -22,26 +21,22 @@ class Main extends PS_Controller
 
 		if(!empty($this->_user->id))
 		{
-
 			$fromDate = date('01-m-Y');
 			$toDate = date('t-m-Y');
 			$user_id = $this->_user->id;
-			$ds['sumOrdered'] = round($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate), 2);
-			$ds['sumPending'] = round($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate), 2);
-			$ds['sumApproved'] = round($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate), 2);
-			$ds['sumRejected'] = round($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate), 2);
+			$ds['sumOrdered'] = round($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumPending'] = round($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumApproved'] = round($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumRejected'] = round($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
 			$ds['bi_link'] = $this->_user->bi_link == 1 ? $this->user_model->get_bi_link($this->_user->sale_id) : NULL;
 		}
-
 
 		$this->load->view('main_view', $ds);
 	}
 
 
-
 	public function get_summary()
 	{
-
 		$sc = TRUE;
 		$ds = array();
 		$fromDate = $this->input->get('fromDate');
@@ -50,10 +45,10 @@ class Main extends PS_Controller
 
 		if(!empty($user_id))
 		{
-			$ds['sumOrdered'] = number($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate), 2);
-			$ds['sumPending'] = number($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate), 2);
-			$ds['sumApproved'] = number($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate), 2);
-			$ds['sumRejected'] = number($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate), 2);
+			$ds['sumOrdered'] = number($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumPending'] = number($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumApproved'] = number($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumRejected'] = number($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
 		}
 		else
 		{
@@ -65,12 +60,10 @@ class Main extends PS_Controller
 	}
 
 
-
 	public function get_details()
 	{
 		$sc = TRUE;
 		$ds = array();
-
 		$fromDate = $this->input->get('fromDate');
 		$toDate = $this->input->get('toDate');
 		$status = $this->input->get('status');
@@ -82,15 +75,13 @@ class Main extends PS_Controller
 
 			if(!empty($report))
 			{
-				$no = 1;
-				// $priceListName = $this->user_model->get_all_price_list_array();				
+				$no = 1;								
 				$terms = $this->user_model->get_all_payment_term_array();
 				$totalQty = 0;
 				$totalAmount = 0;
 
 				foreach($report as $rs)
 				{
-
 					$arr = array(
 						'no' => $no,
 						'DocDate' => thai_date($rs->DocDate, FALSE),
@@ -143,33 +134,29 @@ class Main extends PS_Controller
 	}
 
 
-
 	public function approval_status_label($approval, $approval_status)
 	{
 		if($approval == 'A' && $approval_status == 'P')
 		{
 			return "อนุมัติบางส่วน";
 		}
-		else
+
+		if ($approval == 'A')
 		{
-			if($approval == 'A')
-			{
-				return "อนุมัติ";
-			}
+			return "อนุมัติ";
+		}
 
-			if($approval == 'P')
-			{
-				return "รออนุมัติ";
-			}
+		if ($approval == 'P')
+		{
+			return "รออนุมัติ";
+		}
 
-			if($approval == 'R')
-			{
-				return "ไม่อนุมัติ";
-			}
+		if ($approval == 'R')
+		{
+			return "ไม่อนุมัติ";
 		}
 
 		return NULL;
 	}
 
-
-} //--- end class
+}

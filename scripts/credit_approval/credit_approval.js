@@ -45,21 +45,33 @@ function preview(code) {
 					let modal = $('#preview-modal');
 
 					if (data.can_review && data.is_overdue && data.case_id == null && data.approval_status != 'A') {
-						$('#btn-request').removeClass('hide');
-						$('#btn-reject').removeClass('hide');
+						if(data.approval_status != 'R') {
+							$('#btn-request').removeClass('hide');
+							$('#btn-reject').removeClass('hide');						
+						}
+
+						console.log('a');
 					}
 
 					if (data.can_review && ((data.is_overdue && data.case_id != null) || (!data.is_overdue && data.case_id == null)) && !data.credit_review && data.approval_status != 'A') {
-						$('#btn-accept').removeClass('hide');
-						$('#btn-reject').removeClass('hide');
+						if(data.approval_status != 'R') {
+							$('#btn-accept').removeClass('hide');
+							$('#btn-reject').removeClass('hide');						
+						}
+
+						console.log('b');
 					}
 
 					if (data.can_approve && data.credit_review && data.approval_status != 'A') {
-						$('#btn-ap-approve').removeClass('hide');
-						$('#btn-ap-reject').removeClass('hide');
+						if(data.approval_status != 'R') {
+							$('#btn-ap-approve').removeClass('hide');
+							$('#btn-ap-reject').removeClass('hide');
+						}
+
 						modal = $('#approve-modal');
 						source = $('#approve-template').html();
 						output = $('#result-table');
+						console.log('c');
 					}
 
 					render(source, data, output);

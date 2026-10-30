@@ -3,7 +3,6 @@ function get_reply_status($id)
 {
   $ci =& get_instance();
   $ci->load->model('payment_request_model');
-
   return $ci->payment_request_model->get_reply_status($id);
 }
 

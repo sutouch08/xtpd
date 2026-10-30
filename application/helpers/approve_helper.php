@@ -1,6 +1,6 @@
 <?php
 
-function select_conditions($cond = NULL)
+function select_conditions($cond = '')
 {
   $sc  = '<option value="Less Than" '.is_selected("Less Than", $cond).'>Less Than</option>';
   $sc .= '<option value="Less or Equal" '.is_selected("Less or Equal", $cond).'>Less or Equal</option>';
@@ -11,11 +11,9 @@ function select_conditions($cond = NULL)
 }
 
 
-
-function select_approver($user_id = NULL)
+function select_approver($user_id = '')
 {
   $sc = '';
-
   $ci =& get_instance();
   $ci->load->model('approver_model');
   $approver = $ci->approver_model->get_all_active_approver();
@@ -32,10 +30,9 @@ function select_approver($user_id = NULL)
 }
 
 
-function select_approver_uname($uname = NULL)
+function select_approver_uname($uname = '')
 {
   $sc = '';
-
   $ci =& get_instance();
   $ci->load->model('approver_model');
   $approver = $ci->approver_model->get_all_active_approver();
@@ -50,7 +47,6 @@ function select_approver_uname($uname = NULL)
 
   return $sc;
 }
-
 
 
 function approver_name_list($ds)
@@ -71,14 +67,11 @@ function approver_name_list($ds)
 }
 
 
-
-
-function select_customer_team($id = NULL)
+function select_customer_team($id = '')
 {
   $sc = "";
   $ci =& get_instance();
   $ci->load->model('customer_team_model');
-
   $list = $ci->customer_team_model->get_all();
 
   if(!empty($list))
@@ -92,5 +85,3 @@ function select_customer_team($id = NULL)
   return $sc;
 }
 
-
-?>

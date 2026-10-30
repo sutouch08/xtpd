@@ -5,13 +5,13 @@
 	</div>
 	<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 padding-5">
 		<p class="pull-right top-p">
-			<?php if($this->pm->can_add) : ?>
+			<?php if ($this->pm->can_add) : ?>
 				<button type="button" class="btn btn-sm btn-success" onclick="goAdd()"><i class="fa fa-plus"></i> Add New</button>
 			<?php endif; ?>
 		</p>
 	</div>
 </div><!-- End Row -->
-<hr class="padding-5"/>
+<hr class="padding-5" />
 <form id="searchForm" method="post" action="<?php echo current_url(); ?>">
 	<div class="row">
 		<div class="col-lg-2 col-md-2-harf col-sm-3 col-xs-6 padding-5">
@@ -28,8 +28,9 @@
 			<button type="button" class="btn btn-xs btn-warning btn-block" onclick="clearFilter()"><i class="fa fa-retweet"></i> Reset</button>
 		</div>
 	</div>
-	<hr class="margin-top-15 padding-5">
+	<input type="hidden" name="search" value="1" />
 </form>
+<hr class="margin-top-15 padding-5">
 <?php echo $this->pagination->create_links(); ?>
 
 <div class="row">
@@ -43,15 +44,15 @@
 				</tr>
 			</thead>
 			<tbody>
-				<?php if(!empty($data)) : ?>
+				<?php if (!empty($data)) : ?>
 					<?php $no = $this->uri->segment(3) + 1; ?>
-					<?php foreach($data as $rs) : ?>
+					<?php foreach ($data as $rs) : ?>
 						<tr>
 							<td class="">
-								<?php if($this->pm->can_edit) : ?>
+								<?php if ($this->pm->can_edit) : ?>
 									<button type="button" class="btn btn-mini btn-warning" onclick="goEdit(<?php echo $rs->id; ?>)"><i class="fa fa-pencil"></i></button>
 								<?php endif; ?>
-								<?php if($this->pm->can_delete) : ?>
+								<?php if ($this->pm->can_delete) : ?>
 									<button type="button" class="btn btn-mini btn-danger" onclick="getDelete(<?php echo $rs->id; ?>, '<?php echo $rs->name; ?>')"><i class="fa fa-trash"></i></button>
 								<?php endif; ?>
 							</td>

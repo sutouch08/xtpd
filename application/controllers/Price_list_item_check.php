@@ -58,8 +58,7 @@ class Price_list_item_check extends PS_Controller
     	}
     }
 
-    $ds['priceList'] = $PL;
-    //$data['priceList'] = $this->price_list_item_check_model->get_user_price_list($this->_user->id);
+    $ds['priceList'] = $PL;    
     $this->load->view('price_list_item_check/price_list_check', $ds);
   }
 
@@ -175,7 +174,7 @@ class Price_list_item_check extends PS_Controller
 
         if (! empty($items))
         {
-          $ds = '<option value="0">Select items (' . count($items) . ')</option>';
+          $ds = '<option value="0">Select items (' . count($items ?? []) . ')</option>';
           foreach ($items as $rs)
           {
             $ds .= '<option value="' . $rs->code . '" data-name="' . $rs->name . '">' . $rs->name . '</option>';

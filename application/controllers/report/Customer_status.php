@@ -1,5 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Common\Entity\Row;
 
 class Customer_status extends PS_Controller
 {
@@ -14,8 +16,6 @@ class Customer_status extends PS_Controller
 		$this->load->model('report/customer_status_model');		
 		$this->load->helper('customer');
   }
-
-
 
 	public function index()
   {		
@@ -132,93 +132,77 @@ class Customer_status extends PS_Controller
 
 	} //--- end function
 
-
 	public function do_export()
 	{
-		$token = $this->input->post('token');
-		//---  Report title
+		$token = $this->input->post('token');		
 		$report_title = 'รายชื่อลูกค้าไม่ประจำที่มีอายุเกิน 3 เดือนและเคยเปิด invoice แล้วอย่างน้อย 3 ใบ ณ วันที่ ' . date('d-m-Y');
-		
-		//--- load excel library
-		$this->load->library('excel');
-
-		$this->excel->setActiveSheetIndex(0);
-		$this->excel->getActiveSheet()->setTitle('Customer Status Report');
-
-		//--- set report title header
-		$this->excel->getActiveSheet()->setCellValue('A1', $report_title);
-		$this->excel->getActiveSheet()->mergeCells('A1:F1');
-		$this->excel->getActiveSheet()->getRowDimension('1')->setRowHeight(25);		
-		$this->excel->getActiveSheet()->getStyle('A1')->getFont()->setSize(13);
-		$this->excel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
-		$this->excel->getActiveSheet()->getStyle('A1')->getAlignment()->setVertical('center');
-
-		$row = 2;
-		$this->excel->getActiveSheet()->setCellValue('A'.$row, '#');
-		$this->excel->getActiveSheet()->setCellValue('B'.$row, 'Code');
-		$this->excel->getActiveSheet()->setCellValue('C'.$row, 'Name');
-		$this->excel->getActiveSheet()->setCellValue('D'.$row, 'Create Date');
-		$this->excel->getActiveSheet()->setCellValue('E'.$row, 'Duration (days)');
-		$this->excel->getActiveSheet()->setCellValue('F'.$row, 'Invoice Count');
-		//---- กำหนดความกว้างของคอลัมภ์
-		$this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(5);
-		$this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(15);
-		$this->excel->getActiveSheet()->getColumnDimension('C')->setWidth(60);
-		$this->excel->getActiveSheet()->getColumnDimension('D')->setWidth(15);
-		$this->excel->getActiveSheet()->getColumnDimension('E')->setWidth(15);
-		$this->excel->getActiveSheet()->getColumnDimension('F')->setWidth(15);
-		$this->excel->getActiveSheet()->getStyle('A2:F2')->getAlignment()->setHorizontal('center');
-		$row++;
-
 		$isAdmin = $this->isAdmin || $this->_SuperAdmin;
 		$list = $isAdmin ? $this->customer_status_model->get_all_user_customer_list() : $this->customer_status_model->get_user_customer_list($this->_user->area_id);
 
-		if( ! empty($list))
+		try
 		{
-			$no = 1;
-			$today = date('Y-m-d');
+			$tempFile = tempnam(sys_get_temp_dir(), 'customer_status_');
+			$fileName = 'Customer Status Report - '.date('Ymdhis').'.xlsx';
 
-			foreach($list as $rs)
+			$writer = new Writer();
+			$writer->openToFile($tempFile);
+			$writer->addRow(Row::fromValues([$report_title]));
+			$writer->addRow(Row::fromValues([' ']));
+			$header = ['#', 'Code', 'Name', 'Create Date', 'Duration (days)', 'Invoice Count'];
+			$writer->addRow(Row::fromValues($header));
+			$sheet = $writer->getCurrentSheet();
+			$sheet->setColumnWidth(5, 1); // set width for column A
+			$sheet->setColumnWidth(15, 2); // set width for column B
+			$sheet->setColumnWidth(60, 3); // set width for column C
+			$sheet->setColumnWidthForRange(15, 4, 6); // set width for column D to F
+
+			if(!empty($list))
 			{
-				$invoiceCount = $this->customer_status_model->count_customer_invoice($rs->CardCode);
+				$no = 1;
+				$today = date('Y-m-d');
 
-				if($invoiceCount > 2)
+				foreach($list as $rs)
 				{
-					$this->excel->getActiveSheet()->setCellValue('A'.$row, $no);
-					$this->excel->getActiveSheet()->setCellValue('B'.$row, $rs->CardCode);
-					$this->excel->getActiveSheet()->setCellValue('C'.$row, $rs->CardName);
-					$this->excel->getActiveSheet()->setCellValue('D'.$row, thai_date($rs->CreateDate, FALSE));
-					$this->excel->getActiveSheet()->setCellValue('E'.$row, date_diff(date_create($rs->CreateDate), date_create($today))->days);
-					$this->excel->getActiveSheet()->setCellValue('F'.$row, $invoiceCount);
+					$invoiceCount = $this->customer_status_model->count_customer_invoice($rs->CardCode);
 
-					$row++;
-					$no++;
+					if($invoiceCount > 2)
+					{
+						$rowData = [
+							$no,
+							$rs->CardCode,
+							$rs->CardName,
+							thai_date($rs->CreateDate, FALSE),
+							number(date_diff(date_create($rs->CreateDate), date_create($today))->days),
+							number($invoiceCount)
+						];
+
+						$writer->addRow(Row::fromValues($rowData));
+						$no++;
+					}
 				}
 			}
 
-			$this->excel->getActiveSheet()->getStyle('E3:F' . $row)->getNumberFormat()->setFormatCode("#,##0");
-			$this->excel->getActiveSheet()->getStyle('A3:A' . $row)->getAlignment()->setHorizontal('center');		
-			$this->excel->getActiveSheet()->getStyle('D3:F' . $row)->getAlignment()->setHorizontal('center');
-			$this->excel->getActiveSheet()->getStyle('A2:F' . $row)->applyFromArray(array(
-				'borders' => array(
-					'allborders' => array(
-						'style' => PHPExcel_Style_Border::BORDER_THIN
-					)
-				)
-			));
-		}		
+			$writer->close();
+			setToken($token);
 
-		setToken($token);
+			while(ob_get_level() > 0)
+			{
+				ob_end_flush();
+			}
 
-		$file_name = "Customer Status Report.xlsx";
-		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); /// form excel 2007 XLSX
-		header('Content-Disposition: attachment;filename="' . $file_name . '"');
-		$writer = PHPExcel_IOFactory::createWriter($this->excel, 'Excel2007');
-		$writer->save('php://output');
+			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+			header('Content-Disposition: attachment; filename="'.$fileName.'"');
+			readfile($tempFile);
+			unlink($tempFile);
+		}
+		finally
+		{
+			if(file_exists($tempFile))
+			{
+				unlink($tempFile);
+			}
+		}
 
-	}
-
-} // end class
-
-
- ?>
+		exit;
+	}	
+} 

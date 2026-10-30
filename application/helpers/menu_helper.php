@@ -24,6 +24,7 @@ function side_menu($menu_code, $code, $url, $name)
   $menu = '';
   $ci =& get_instance();
   $ci->load->model('menu');
+
   if($ci->menu->is_active($code))
   {
     $menu .= '<li class="'.active_menu($menu_code, $code).'">';
@@ -35,4 +36,3 @@ function side_menu($menu_code, $code, $url, $name)
   return $menu;
 }
 
- ?>

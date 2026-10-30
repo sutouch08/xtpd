@@ -5,7 +5,6 @@ function thai_date($date, $time = FALSE, $sp = '-')
   {
     $sp = $sp === '' ? '-' : $sp;
     $format = $time === TRUE ? 'd'.$sp.'m'.$sp.'Y'.' H:i:s' : 'd'.$sp.'m'.$sp.'Y';
-
     return date($format, strtotime($date));
   }
 
@@ -38,10 +37,10 @@ function thai_short_text_date($date, $time = FALSE)
 		case "11": $m 	= "พ.ย."; break;
 		case "12": $m 	= "ธ.ค."; break;
 	}
+
 	$newDate 	= $time === TRUE ? $d.' '.$m.' '.$Y.' '.$t : $d.' '.$m.' '.$Y;
 	return $newDate;
 }
-
 
 
 function now()
@@ -50,18 +49,17 @@ function now()
 }
 
 
-
 function today()
 {
   return date('Y-m-d');
 }
 
 
-function db_date($date = '', $time = FALSE, $sp = '-')
+function db_date($date = '', $time = FALSE)
 {
   $date = empty($date) ? date('Y-m-d') : $date;
 
-  if($time = TRUE)
+  if($time)
   {
     $c_time = date('H:i:s', strtotime($date));
     $c_time = $c_time == '00:00:00' ? date('H:i:s') : $c_time;
@@ -69,16 +67,12 @@ function db_date($date = '', $time = FALSE, $sp = '-')
     return date('Y-m-d H:i:s', strtotime($date));
   }
 
-
   return date('Y-m-d', strtotime($date));
 }
 
 
-
-function sap_date($date="", $time = FALSE)
-{
-  //$date = empty($date) ? date('Y-m-d H:i:s') : $date;
-
+function sap_date($date, $time = FALSE)
+{  
   if($time === TRUE)
   {
     $c_time = date('H:i:s', strtotime($date));
@@ -87,55 +81,41 @@ function sap_date($date="", $time = FALSE)
     return $date .' '.$c_time;
   }
 
-
   return date('Y-m-d', strtotime($date));
 }
 
 
-
 function from_date($date = '')
 {
-  if($date === '')
-  {
-    return date('Y-m-d 00:00:00');
-  }
-  else
-  {
-    return date('Y-m-d 00:00:00', strtotime($date));
-  }
+  return empty($date) ? date('Y-m-d 00:00:00') : date('Y-m-d 00:00:00', strtotime($date)); 
 }
-
 
 
 function to_date($date = '')
 {
-  if($date === '')
-  {
-    return date('Y-m-d 23:59:59');
-  }
-  else
-  {
-    return date('Y-m-d 23:59:59', strtotime($date));
-  }
+  return empty($date) ? date('Y-m-d 23:59:59') : date('Y-m-d 23:59:59', strtotime($date));
 }
 
 
-function select_years($se="0000")
+function select_years(string $selected = '')
 {
-	$sc 		= '';
-	$length	= 5;
-	$startYear = getConfig('START_YEAR');
-	//$se 		= ($se == '' OR $se == '0000') ? $startYear : $se;
-	$year = ($se - $length) < $startYear ? $startYear : $se - $length;
-	$lastYear = date('Y') + $length;
-	while( $year <= $lastYear )
-	{
-		$sc .= '<option value="'.$year.'" '.is_selected($year, $se).'>'.$year.'</option>';
-		$year++;
-	}
-	return $sc;
-}
+  $options = "";
+  $length  = 5;
+  $startYear = getConfig('START_YEAR');
+  $startYear = empty($startYear) ? intval(date('Y')) - $length : intval($startYear);
+  $y = $selected === ''  ? $startYear : intval($selected);
+  $year = ($y - $length) < $startYear ? $startYear : $y - $length;
+  $lastYear = date('Y') + $length;
 
+  while ($year <= $lastYear)
+  {
+    $is_select = ($year == $selected) ? 'selected' : '';
+    $options .= '<option value="' . $year . '" ' . $is_select . '>' . $year . '</option>';
+    $year++;
+  }
+
+  return $options;
+}
 
 
 function selectHour($se = '')
@@ -148,8 +128,6 @@ function selectHour($se = '')
 	}
 	return $sc;
 }
-
-
 
 
 function selectMin($se = '' )
@@ -167,7 +145,6 @@ function selectMin($se = '' )
 }
 
 
-
 function selectTime($time='')
 {
 	$sc = '';
@@ -182,13 +159,13 @@ function selectTime($time='')
 }
 
 
-function added_date($date, $add_days)
+function added_date($date, $add_days = 0)
 {
   return date('Y-m-d', strtotime("+{$add_days} day {$date}"));
 }
 
 
-function shift_date($date = "", $add_days = NULL, $skip_week_end = FALSE)
+function shift_date($date = "", $add_days = 0, $skip_week_end = FALSE)
 {
   $date = empty($date) ? date('Y-m-d') : $date;
   $sDate = !empty($add_days) ? date('Y-m-d', strtotime("+{$add_days} day {$date}")) : date('Y-m-d', strtotime($date));
@@ -209,10 +186,10 @@ function shift_date($date = "", $add_days = NULL, $skip_week_end = FALSE)
 
     if($plus_day > 0)
     {
-      $sDate = date('Y-m-d', strtotime($sDate));
+      $sDate = date('Y-m-d', strtotime("+{$plus_day} day {$sDate}"));
     }
   }
 
   return $sDate;
 }
- ?>
+

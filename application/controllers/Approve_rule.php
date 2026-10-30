@@ -5,6 +5,7 @@ class Approve_rule extends PS_Controller{
 	public $menu_code = 'APPROVE_RULE';
 	public $menu_group_code = 'ADMIN';
 	public $title = 'Exception rule';
+	public $segment = 3;
 
   public function __construct()
   {
@@ -27,30 +28,19 @@ class Approve_rule extends PS_Controller{
 			'status' => get_filter('status', 'ar_status', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
-		$segment = 3; //-- url segment
+		$perpage = get_rows();		
 		$rows = $this->approve_rule_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$rs = $this->approve_rule_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $rs;
-
+		$filter['data'] = $this->approve_rule_model->get_list($filter, $perpage, $this->uri->segment($this->segment));		
+		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $this->segment);
 		$this->pagination->initialize($init);
-
     $this->load->view('approve_rule/approve_rule_list', $filter);
   }
-
-
 
 	public function add_new()
 	{
@@ -62,7 +52,7 @@ class Approve_rule extends PS_Controller{
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -73,7 +63,7 @@ class Approve_rule extends PS_Controller{
 
 		if($this->pm->can_add)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->conditions) && ! empty($ds->sale_team))
 			{
@@ -130,11 +120,38 @@ class Approve_rule extends PS_Controller{
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
+	public function set_active()
+	{
+		$sc = TRUE;
+		$id = $this->input->post('id');
+		$status = $this->input->post('status') == 1 ? 1 : 0;
 
+		if(!empty($id))
+		{
+			$arr = array(
+				'status' => $status,
+				'update_by' => $this->_user->id,
+				'date_upd' => now()
+			);
+			
+			if(! $this->approve_rule_model->update($id, $arr))
+			{
+				$sc = FALSE;
+				$this->error = "Update status failed";
+			}
+		}
+		else
+		{
+			$sc = FALSE;
+			$this->error = "Missing required parameter";
+		}
+
+		$this->_response($sc);
+	}
 
 	public function update()
 	{
@@ -142,7 +159,7 @@ class Approve_rule extends PS_Controller{
 
 		if($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->id) && ! empty($ds->conditions) && ! empty($ds->sale_team))
 			{
@@ -233,7 +250,6 @@ class Approve_rule extends PS_Controller{
 	}
 
 
-
 	public function get_new_code($date = NULL)
   {
     $date = empty($date) ? date('Y-m-d') : $date;
@@ -267,11 +283,6 @@ class Approve_rule extends PS_Controller{
 			'ar_status'
 		);
 
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter($filter);		
 	}
-
-}//--- end class
-
-
- ?>
+}

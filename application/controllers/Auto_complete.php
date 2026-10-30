@@ -37,12 +37,9 @@ class Auto_complete extends CI_Controller
   }
 
 
-
-
   public function get_customer_code_and_name()
   {
-    $df_cust = getConfig('DEFAULT_CUSTOMER_CODE');
-
+    $df_cust = getConfig('DEFAULT_CUSTOMER_CODE') ?? '';
     $txt = trim($_REQUEST['term']);
     $sc = array();
 
@@ -290,39 +287,4 @@ class Auto_complete extends CI_Controller
 
     echo json_encode($sc);
   }
-
-
-  public function get_project_code_name_name()
-  {
-    $sc = array();
-    $txt = $_REQUEST['term'];
-
-    $qr = "SELECT PrjCode AS code, PrjName AS name FROM OPRJ ";
-    $qr .= "WHERE Active = 'Y' ";
-
-    if($txt !== '*')
-    {
-      $qr .= "AND (PrjCode LIKE N'%{$txt}%' OR PrjName LIKE N'%{$txt}%') ";
-    }
-
-    $qr .= "ORDER BY PrjCode ASC OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY";
-
-    $qs = $this->ms->query($qr);
-
-    if($qs->num_rows() > 0)
-    {
-      foreach($qs->result() as $rs)
-      {
-        $sc[] = $rs->code.' | '.$rs->name;
-      }
-    }
-    else
-    {
-      $sc[] = 'Not found';
-    }
-
-    echo json_encode($sc);
-  }
-
-} //-- end class
-?>
+}

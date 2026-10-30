@@ -17,4 +17,3 @@ function select_step_rule($PriceList = NULL)
   return $sc;
 }
 
- ?>

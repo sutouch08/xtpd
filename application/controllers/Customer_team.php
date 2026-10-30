@@ -14,55 +14,37 @@ class Customer_team extends PS_Controller
 		$this->load->model('customer_team_model');
   }
 
-
-
   public function index()
   {
 		$filter = array(
 			'name' => get_filter('name', 'customer_team_name', '')
 		);
 
-				//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->customer_team_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$filter['data'] = $this->customer_team_model->get_list($filter, $perpage, $this->uri->segment($segment));		
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->customer_team_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-    $filter['data'] = $result;
-
 		$this->pagination->initialize($init);
     $this->load->view('customer_team/customer_team_list', $filter);
   }
 
-
-
 	public function add_new()
 	{
-		if($this->pm->can_add)
-		{
-			$this->load->view('customer_team/customer_team_add');
-		}
-		else
-		{
-			$this->deny_page();
-		}
+		if($this->pm->can_add) $this->load->view('customer_team/customer_team_add');
+		else $this->deny_page(TRUE);
 	}
-
 
 	public function add()
 	{
 		$sc = TRUE;
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 
 		if(!empty($name))
 		{
@@ -103,9 +85,6 @@ class Customer_team extends PS_Controller
 		$this->_response($sc);
 	}
 
-
-
-
 	public function edit($id)
 	{		
 		if($this->pm->can_edit)
@@ -114,7 +93,6 @@ class Customer_team extends PS_Controller
 
 			if(!empty($rs))
 			{
-
 				$data['data'] = $rs;
 				$this->load->view('customer_team/customer_team_edit', $data);
 			}
@@ -125,11 +103,9 @@ class Customer_team extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
-
-
 
 	public function update($id)
 	{
@@ -137,7 +113,7 @@ class Customer_team extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$name = trim($this->input->post('name'));
+			$name = trim($this->input->post('name') ?? '');
 
 			if(!empty($name))
 			{
@@ -173,11 +149,8 @@ class Customer_team extends PS_Controller
 			$this->error = "Missing Permission";
 		}
 
-
 		$this->_response($sc);
 	}
-
-
 
 	public function delete($id)
 	{
@@ -200,20 +173,9 @@ class Customer_team extends PS_Controller
 		$this->_response($sc);
 	}
 
-
-
-
   public function clear_filter()
 	{
-		$filter = array(
-			'customer_team_name'
-		);
-
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter('customer_team');	
 	}
 
-}//--- end class
-
-
- ?>
+}

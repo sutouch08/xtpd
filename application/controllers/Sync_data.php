@@ -42,7 +42,6 @@ class Sync_data extends CI_Controller
 
   public function index()
   {
-
     $filter = array(
       'code' => get_filter('code', 'sync_code', ''),
       'docType' => get_filter('docType', 'docType', 'all'),
@@ -52,24 +51,11 @@ class Sync_data extends CI_Controller
       'to_date' => get_filter('to_date', 'sync_to_date', '')
     );
 
-    //--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
-		{
-			$perpage = get_filter('rows', 'rows', 300);
-		}
-
+    $perpage = get_rows();
 		$segment = 3; //-- url segment
-		$rows = $this->sync_data_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$rows = $this->sync_data_model->count_rows($filter);		
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$rs = $this->sync_data_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-    $filter['data'] = $rs;
-
+    $filter['data'] = $this->sync_data_model->get_list($filter, $perpage, $this->uri->segment($segment));
 		$this->pagination->initialize($init);
     $this->load->view('sync_data_view', $filter);
   }
@@ -135,7 +121,7 @@ class Sync_data extends CI_Controller
 
   public function syncData()
   {
-    $docType = trim($this->input->post('docType'));
+    $docType = trim($this->input->post('docType') ?? '');
 
     switch ($docType) {
       case 'DO':
@@ -258,7 +244,6 @@ class Sync_data extends CI_Controller
 
       $this->sync_data_model->add_logs($arr);
     }
-
   }
 
 
@@ -496,13 +481,6 @@ class Sync_data extends CI_Controller
       'sync_to_date'
     );
 
-    clear_filter($filter);
-
-    echo 'done';
+    return clear_filter($filter);    
   }
-
-
-
-} //--- end class
-
- ?>
+}

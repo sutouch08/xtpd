@@ -1,5 +1,4 @@
 <?php
-
 function select_price_list($id = '')
 {
   $sc = "";
@@ -19,7 +18,7 @@ function select_price_list($id = '')
 }
 
 
-function price_list_name($id)
+function price_list_name($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('price_list_model');

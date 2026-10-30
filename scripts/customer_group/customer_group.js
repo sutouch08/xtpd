@@ -1,4 +1,3 @@
-var HOME = `${BASE_URL}customer_group/`;
 var click = 0;
 
 function goBack() {
@@ -210,4 +209,237 @@ function toggleActive(id, el) {
       showError(rs);
     }
   });
+}
+
+// --- Debounce Utility ---
+function debounce(fn, delay = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(null, args), delay);
+  };
+}
+
+// --- Cache table data in memory ---
+function cacheTableData(tableSelector) {
+  const table = document.querySelector(tableSelector);
+  const rows = [...table.querySelectorAll("tbody tr")];
+
+  return rows.map(row => {
+    const cells = [...row.querySelectorAll("td")].map(td => td.innerText.toLowerCase());
+    return {
+      row,
+      cells
+    };
+  });
+}
+
+// --- Render filtered rows ---
+function renderRows(tableSelector, rows) {
+  const tbody = document.querySelector(tableSelector).querySelector("tbody");
+  tbody.innerHTML = ""; // clear
+  const fragment = document.createDocumentFragment();
+
+  rows.forEach(item => fragment.appendChild(item.row));
+  tbody.appendChild(fragment);
+
+  // Update the result count
+  if (tableSelector === "#customer-list-table") {
+    updateRowCount(tableSelector, "#list-result");
+  } else if (tableSelector === "#group-list-table") {
+    updateRowCount(tableSelector, "#group-result");
+  }
+}
+
+// --- Main Filter Function ---
+function filterData(searchText, cachedData, columnsToSearch) {
+  const text = searchText.trim().toLowerCase();
+
+  if (text === "") return cachedData; // no filter
+
+  return cachedData.filter(item =>
+    columnsToSearch.some(col => item.cells[col].includes(text))
+  );
+}
+
+
+// --- Setup ---  
+const custTable = "#customer-list-table";
+const groupTable = "#group-list-table";
+const columnsToSearch = [1, 2]; // configurable 
+let custTextSearch = "";
+let groupTextSearch = "";
+let customerCache = cacheTableData(custTable);
+let groupCache = cacheTableData(groupTable);
+
+
+document.querySelector("#customer-search-box").addEventListener(
+  "input",
+  debounce(e => {
+    custTextSearch = e.target.value;
+    applyCustFilter();
+  }, 300)
+);
+
+
+document.querySelector("#group-search-box").addEventListener(
+  "input",
+  debounce(e => {
+    groupTextSearch = e.target.value;
+    applyGroupFilter();
+  }, 300)
+);
+
+
+function filterTable(cache, searchText, columnsToSearch) {
+  const text = searchText.trim().toLowerCase();
+  if (text === "") return cache;
+
+  return cache.filter(item =>
+    columnsToSearch.some(col => item.cells[col].includes(text))
+  );
+}
+
+function applyCustFilter(uncheckAll = false) {
+  const filtered = filterTable(customerCache, custTextSearch, columnsToSearch);
+  renderRows(custTable, filtered);
+
+  if (uncheckAll) {
+    const checkboxes = document.querySelectorAll("#customer-list-table .row-check");
+    checkboxes.forEach(chk => chk.checked = false);
+  }
+}
+
+function applyGroupFilter(uncheckAll = false) {
+  const filtered = filterTable(groupCache, groupTextSearch, columnsToSearch);
+  renderRows(groupTable, filtered);
+
+  if (uncheckAll) {
+    const checkboxes = document.querySelectorAll("#group-list-table .row-check");
+    checkboxes.forEach(chk => chk.checked = false);
+  }
+}
+
+
+function clearSearchText(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = "";
+    if (inputId === "customer-search-box") {
+      custTextSearch = "";
+      applyCustFilter();
+    } else if (inputId === "group-search-box") {
+      groupTextSearch = "";
+      applyGroupFilter();
+    }
+  }
+}
+
+function toggleAllGroups(checkbox) {
+  const rows = document.querySelectorAll("#group-list-table tbody .row-check");
+  rows.forEach(chk => chk.checked = checkbox.checked);
+}
+
+function toggleAllCust(checkbox) {
+  const rows = document.querySelectorAll("#customer-list-table tbody .row-check");
+  rows.forEach(chk => chk.checked = checkbox.checked);
+}
+
+function addToGroup() {
+  moveSelected(customerCache, groupCache, "#customer-list-table", "#group-list-table");
+  applyCustFilter(); // re-render customer list
+  applyGroupFilter(true); // re-render group list and uncheck all checkboxes
+}
+
+function removeFromGroup() {
+  moveSelected(groupCache, customerCache, "#group-list-table", "#customer-list-table");
+  applyGroupFilter(); // re-render group list
+  applyCustFilter(true); // re-render customer list and uncheck all checkboxes
+}
+
+function moveSelected(fromCache, toCache, fromSelector, toSelector) {
+  const checkedRows = document.querySelectorAll(`${fromSelector} .row-check:checked`);
+
+  checkedRows.forEach(chk => {
+    const row = chk.closest("tr");
+
+    const index = fromCache.findIndex(item => item.row === row);
+    if (index !== -1) {
+      const item = fromCache[index];
+
+      // remove from origin/destination
+      fromCache.splice(index, 1);
+
+      // add to destination/origin
+      toCache.push(item);
+    }
+  });
+}
+
+function updateRowCount(tableSelector, labelSelector) {
+  const visibleRows = document.querySelectorAll(`${tableSelector} tbody tr`);
+  document.querySelector(labelSelector).innerText = visibleRows.length;
+}
+
+function getFile() {
+  $('#uploadFile').click();
+}
+
+const uploadFile = document.getElementById('uploadFile');
+
+uploadFile.addEventListener('change', async function () {
+  if (this.files.length > 0) {
+    const file = this.files[0];
+
+    if (file.size > 5000000) {
+      swal("ขนาดไฟล์ใหญ่เกินไป", "ไฟล์แนบต้องมีขนาดไม่เกิน 5 MB", "error");
+      this.value = '';
+      return false;
+    }
+
+    await uploadfile(file);
+  }
+})
+
+
+async function uploadfile(file) {
+  const id = $('#id').val();
+  const fd = new FormData();
+  const url = `${HOME}import_details/${id}`;
+  fd.append('uploadFile', file);
+
+  const res = await fetch(url, {
+    method: 'POST',
+    body: fd
+  });
+
+  const result = await res.json();
+
+  if (result && result.status) {
+    const data = result;
+
+    if (data.status === 'success') {
+      swal({
+        title: 'นำเข้าเรียบร้อยแล้ว',
+        text: data.message,
+        type: 'success',
+        html: true
+      },
+        function () {
+          window.location.reload();
+        });
+    } else {
+      showError(data.message);
+    }
+  } else {
+    showError('เกิดข้อผิดพลาดในการนำเข้าไฟล์');
+  }
+}
+
+function exportGroupDetails() {
+  const url = `${HOME}export_details`;
+  const token = generateUID();
+  $('#token').val(token);
+  get_download(token);
+  $('#export-form').submit();
 }

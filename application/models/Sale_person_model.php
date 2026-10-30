@@ -12,71 +12,41 @@ class Sale_person_model extends CI_Model
   public function get($id)
   {
     $rs = $this->db->where('id', $id)->get($this->table);
-
-    if($rs->num_rows() === 1)
-    {
-      return $rs->row();
-    }
-
-    return NULL;
+    return $rs->num_rows() === 1 ? $rs->row() : NULL;
   }
-
 
 
   public function get_id($name)
   {
     $rs = $this->db->where('name', $name)->get($this->table);
+    return $rs->num_rows() === 1 ? $rs->row()->id : NULL;
+  }
 
-    if($rs->num_rows() === 1)
-    {
-      return $rs->row()->id;
-    }
 
-    return NULL;
+  public function get_name($id)
+  {
+    $rs = $this->db->where('id', $id)->get($this->table);
+    return $rs->num_rows() === 1 ? $rs->row()->name : NULL;
   }
 
 
   public function get_all()
   {
     $rs = $this->db->get($this->table);
-
-    if($rs->num_rows() > 0)
-    {
-      return $rs->result();
-    }
-
-    return NULL;
+    return $rs->num_rows() > 0 ? $rs->result() : NULL;
   }
-
 
 
   public function add(array $ds = array())
   {
-    if(!empty($ds))
-    {
-      $rs = $this->db->insert($this->table, $ds);
-
-      if($rs)
-      {
-        return $this->db->insert_id();
-      }
-    }
-
-    return FALSE;
+    return !empty($ds) ? ($this->db->insert($this->table, $ds) ? $this->db->insert_id() : FALSE) : FALSE;
   }
-
 
 
   public function update($id, array $ds = array())
   {
-    if(!empty($ds))
-    {
-      return $this->db->where('id', $id)->update($this->table, $ds);
-    }
-
-    return FALSE;
+    return !empty($ds) ? ($this->db->where('id', $id)->update($this->table, $ds) ? TRUE : FALSE) : FALSE;
   }
-
 
 
   public function delete($id)
@@ -108,36 +78,15 @@ class Sale_person_model extends CI_Model
     }
 
     $this->db->order_by('id', 'DESC')->limit($limit, $offset);
-
     $rs = $this->db->get($this->table);
 
-    if($rs->num_rows() > 0)
-    {
-      return $rs->result();
-    }
-
-    return NULL;
+    return $rs->num_rows() > 0 ? $rs->result() : NULL;
   }
 
 
   public function is_exists_name($name, $id = NULL)
-  {
-    $this->db->select('id')->where('name', $name);
-
-    if($id !== NULL)
-    {
-      $this->db->where('id !=', $id);
-    }
-
-    $rs = $this->db->get($this->table);
-
-    if($rs->num_rows() > 0)
-    {
-      return TRUE;
-    }
-
-    return FALSE;
+  {    
+    if($id !== NULL) $this->db->where('id !=', $id);  
+    return $this->db->where('name', $name)->count_all_results($this->table) > 0;
   }
-
-} //--- end class
- ?>
+}

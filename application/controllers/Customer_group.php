@@ -1,5 +1,8 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
+use OpenSpout\Reader\XLSX\Reader;
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Common\Entity\Row;
 
 class Customer_group extends PS_Controller
 {
@@ -12,7 +15,7 @@ class Customer_group extends PS_Controller
   {
     parent::__construct();
     $this->home = base_url() . 'customer_group';
-    $this->load->model('customer_group_model');    
+    $this->load->model('customer_group_model');
   }
 
 
@@ -27,16 +30,15 @@ class Customer_group extends PS_Controller
     if ($this->input->post('search'))
     {
       redirect($this->home);
+      exit;
     }
-    else
-    {
-      $perpage = get_rows();
-      $rows = $this->customer_group_model->count_rows($filter);
-      $filter['data'] = $this->customer_group_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
-      $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
-      $this->pagination->initialize($init);
-      $this->load->view('customer_group/customer_group_list', $filter);
-    }
+
+    $perpage = get_rows();
+    $rows = $this->customer_group_model->count_rows($filter);
+    $filter['data'] = $this->customer_group_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
+    $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+    $this->pagination->initialize($init);
+    $this->load->view('customer_group/customer_group_list', $filter);
   }
 
 
@@ -52,17 +54,17 @@ class Customer_group extends PS_Controller
 
     if ($this->input->post('code') && $this->input->post('name'))
     {
-      $code = trim($this->input->post('code'));
-      $name = trim($this->input->post('name'));
+      $code = trim($this->input->post('code') ?? '');
+      $name = trim($this->input->post('name') ?? '');
       $status = $this->input->post('status') ? 1 : 0;
 
-      if($this->customer_group_model->is_exists($code))
+      if ($this->customer_group_model->is_exists($code))
       {
         $sc = FALSE;
         set_error('Code already exists');
       }
 
-      if($sc === TRUE)
+      if ($sc === TRUE)
       {
         $arr = array(
           'code' => $code,
@@ -72,12 +74,12 @@ class Customer_group extends PS_Controller
           'update_by' => $this->_user->id
         );
 
-        if(! $this->customer_group_model->add($arr))
+        if (! $this->customer_group_model->add($arr))
         {
           $sc = FALSE;
           set_error('Insert data failed');
         }
-      }      
+      }
     }
     else
     {
@@ -97,19 +99,19 @@ class Customer_group extends PS_Controller
     {
       $this->load->model('customer_model');
       $details = $this->customer_group_model->get_details($id);
-      $list = $this->customer_model->get_all_in_array();           
+      $list = $this->customer_model->get_all_in_array();
 
-      if(!empty($details))
+      if (!empty($details))
       {
-        foreach($details as $rs)
+        foreach ($details as $rs)
         {
-          if(isset($list[$rs->CardId]))
-          {            
+          if (isset($list[$rs->CardId]))
+          {
             unset($list[$rs->CardId]);
           }
         }
       }
-      
+
       $data = array(
         'tab' => $tab,
         'data' => $group,
@@ -133,17 +135,17 @@ class Customer_group extends PS_Controller
     if ($this->input->post('id') && $this->input->post('code') && $this->input->post('name'))
     {
       $id = $this->input->post('id');
-      $code = trim($this->input->post('code'));
-      $name = trim($this->input->post('name'));
+      $code = trim($this->input->post('code') ?? '');
+      $name = trim($this->input->post('name') ?? '');
       $status = $this->input->post('status') ? 1 : 0;
 
-      if($this->customer_group_model->is_exists($code, $id))
+      if ($this->customer_group_model->is_exists($code, $id))
       {
         $sc = FALSE;
         set_error('Code already exists');
       }
 
-      if($sc === TRUE)
+      if ($sc === TRUE)
       {
         $arr = array(
           'code' => $code,
@@ -153,12 +155,12 @@ class Customer_group extends PS_Controller
           'update_by' => $this->_user->id
         );
 
-        if(! $this->customer_group_model->update($id, $arr))
+        if (! $this->customer_group_model->update($id, $arr))
         {
           $sc = FALSE;
           set_error('Update data failed');
         }
-      }      
+      }
     }
     else
     {
@@ -175,7 +177,7 @@ class Customer_group extends PS_Controller
     $sc = TRUE;
 
     $group_id = $this->input->post('id');
-    $lists = json_decode($this->input->post('lists'));
+    $lists = json_decode($this->input->post('lists') ?? '');
 
     if (! empty($group_id))
     {
@@ -185,7 +187,7 @@ class Customer_group extends PS_Controller
       {
         $groupList = [];
 
-        if( ! empty($lists))
+        if (! empty($lists))
         {
           foreach ($lists as $rs)
           {
@@ -196,32 +198,32 @@ class Customer_group extends PS_Controller
             );
           }
         }
-        
+
         $this->db->trans_begin();
 
-        if( ! $this->customer_group_model->delete_details($group_id))
-        {                  
+        if (! $this->customer_group_model->delete_details($group_id))
+        {
           $sc = FALSE;
           $this->error = "Failed to delete existing group details";
         }
 
-        if($sc === TRUE && ! empty($groupList))
+        if ($sc === TRUE && ! empty($groupList))
         {
-          if( ! $this->customer_group_model->add_details($groupList))
+          if (! $this->customer_group_model->add_details($groupList))
           {
             $sc = FALSE;
             $this->error = "Failed to add new group details";
           }
         }
 
-        if($sc === TRUE)
+        if ($sc === TRUE)
         {
           $this->db->trans_commit();
         }
         else
         {
           $this->db->trans_rollback();
-        }        
+        }
       }
       else
       {
@@ -250,7 +252,7 @@ class Customer_group extends PS_Controller
         'data' => $rs,
         'details' => $this->customer_group_model->get_details($id)
       );
-      
+
       $this->load->view('customer_group/customer_group_detail', $ds);
     }
     else
@@ -259,21 +261,20 @@ class Customer_group extends PS_Controller
     }
   }
 
-
   public function import_details($group_id)
   {
     $sc = TRUE;
     $file = isset($_FILES['uploadFile']) ? $_FILES['uploadFile'] : FALSE;
     $path = $this->config->item('upload_path') . 'customer_group/';
-    $file  = 'uploadFile';
-    $config = array(   // initial config for upload class
-      "allowed_types" => "xlsx",
-      "upload_path" => $path,
-      "file_name"  => "import-customer-group-" . date('YmdHis'),
-      "max_size" => 5120,
-      "overwrite" => TRUE
-    );
-  
+    $file = 'uploadFile';
+    $config = [
+      'allowed_types' => 'xlsx',
+      'upload_path' => $path,
+      'file_name'  => 'import-customer-group-' . date('YmdHis'),
+      'max_size' => 5120,
+      'overwrite' => TRUE
+    ];
+
     $this->load->library("upload", $config);
 
     if (! $this->upload->do_upload($file))
@@ -285,115 +286,170 @@ class Customer_group extends PS_Controller
     if($sc === TRUE)
     {
       $this->load->model('customer_model');
-      $this->load->library('excel');
       $info = $this->upload->data();
-      /// read file
-      $excel = PHPExcel_IOFactory::load($info['full_path']);
-      //get only the Cell Collection
-      $collection  = $excel->getActiveSheet()->toArray(NULL, TRUE, TRUE, TRUE);
-
-      $i = 1;
+      $reader = new Reader();
+      $reader->open($info['full_path']);
+      $sheet = $reader->getSheetIterator()->current();
+      $isFirstRow = TRUE;
       $j = 0;
       $k = 0;
       $limit = 1000; //-- limit insert batch 1000 rows per time
-
       $groupList = []; //--- array for insert batch
-      
-      if ( ! empty($collection))
+
+      foreach ($sheet->getRowIterator() as $row)
       {
-        foreach ($collection as $rs)
-        {        
-          if ($i > 1)
-          {            
-            $CardCode = str_replace(array("\n", "\r"), '', trim($rs['A'])); //--- เอาตัวขึ้นบรรทัดใหม่ออก
-
-            if( ! empty($CardCode))
-            {
-              $CardId = $this->customer_model->get_id($CardCode);
-
-              if( ! empty($CardId))
-              {
-                $arr = array(
-                  'group_id' => $group_id,
-                  'CardId' => $CardId,
-                  'CardCode' => $CardCode
-                );
-
-                $groupList[$j][$k] = $arr;
-                $k++;
-
-                if($k === $limit)
-                {              
-                  $k = 0;
-                  $j++;                
-                }
-              }
-              else
-              {
-                $sc = FALSE;
-                $this->error = "Customer : {$CardCode} does not exists";
-                break;
-              }              
-            }
-          }
-
-          $i++;
-
-          if ($sc === FALSE)
-          {
-            break;
-          }     
-        } //-- end foreach
-        
-        if($sc === TRUE)
+        if ($isFirstRow)
         {
-          $this->db->trans_begin();
+          $isFirstRow = FALSE;
+          continue;
+        }
 
-          if( ! $this->customer_group_model->delete_details($group_id))
-          {
-            $sc = FALSE;
-            $this->error = "Failed to delete existing group details";
-          }
+        $cells = $row->getCells();
+        $CardCode = str_replace(array("\n", "\r"), '', trim($cells[0]->getValue())); //--- เอาตัวขึ้นบรรทัดใหม่ออก
 
-          if($sc === TRUE && ! empty($groupList))
+        if (! empty($CardCode))
+        {
+          $CardId = $this->customer_model->get_id($CardCode);
+
+          if (! empty($CardId))
           {
-            foreach($groupList as $list)
+            $arr = array(
+              'group_id' => $group_id,
+              'CardId' => $CardId,
+              'CardCode' => $CardCode
+            );
+
+            $groupList[$j][$k] = $arr;
+            $k++;
+
+            if ($k === $limit)
             {
-              if( ! $this->customer_group_model->add_details($list))
-              {
-                $sc = FALSE;
-                $this->error = "Failed to add new group details";
-                break;
-              }
+              $k = 0;
+              $j++;
             }
-          }
-
-          if($sc === TRUE)
-          {
-            $this->db->trans_commit();
           }
           else
           {
-            $this->db->trans_rollback();
+            $sc = FALSE;
+            $this->error = "Customer : {$CardCode} does not exists";
+            break;
           }
         }
-      }
-      else
-      {
-        $sc = FALSE;
-        $this->error = "จำนวนนำเข้าสูงสุดได้ไม่เกิน {$limit} บรรทัด";
-      } //-- end if count limit
 
-    } //--- end if else
+        if($sc === FALSE) break;
+      }
+
+      if ($sc === TRUE && ! empty($groupList))
+      {
+        $this->db->trans_begin();
+
+        if( ! $this->customer_group_model->delete_details($group_id))
+        {
+          $sc = FALSE;
+          $this->error = "Failed to delete existing group details";
+        }
+
+        if($sc === TRUE)
+        {
+          foreach($groupList as $list)
+          {
+            if( ! $this->customer_group_model->add_details($list))
+            {
+              $sc = FALSE;
+              $this->error = "Failed to add group details";
+              break;
+            }
+          }
+        }
+
+        if($sc === TRUE)
+        {
+          $this->db->trans_commit();
+        }
+        else
+        {
+          $this->db->trans_rollback();
+        }        
+      }
+    }
 
     $arr = array(
       'status' => $sc === TRUE ? 'success' : 'error',
-      'message' => $sc === TRUE ? 'Import completed' : $this->error      
+      'message' => $sc === TRUE ? 'Import completed' : $this->error
     );
-
+    
     echo json_encode($arr);
-  }
+  }  
 
+  public function export_details()
+  {
+    $id = $this->input->post('id');
+    $token = $this->input->post('token');
+
+    if(empty($id) || empty($token))
+    {
+      $this->page_error();
+      return;
+    }
+
+    $group = $this->customer_group_model->get($id);
+
+    if(empty($group))
+    {
+      $this->page_error();
+      return;
+    }
+
+    $groupDetails = $this->customer_group_model->get_details($id);
+
+    if(empty($groupDetails))
+    {
+      $this->page_error();
+      return;
+    }
+
+    $tempFile = tempnam(sys_get_temp_dir(), 'customer_group_');
+    $fileName = "memberOfGroup-{$group->code}.xlsx";
+    $title = "Member of Group: {$group->code} : {$group->name}";
+    $header = ['Code', 'Name'];
+    
+    try 
+    {
+      $writer = new Writer();
+      $writer->openToFile($tempFile);
+      $writer->addRow(Row::fromValues([$title]));
+      $writer->addRow(Row::fromValues(['  ']));
+      $writer->addRow(Row::fromValues($header));
+      $sheet = $writer->getCurrentSheet();
+      $sheet->setColumnWidth(15, 1); //-- A
+      $sheet->setColumnWidth(60, 2); //-- B
+
+      if(!empty($groupDetails))
+      {
+        foreach($groupDetails as $detail)
+        {
+          $row = [$detail->CardCode, $detail->CardName];
+          $writer->addRow(Row::fromValues($row));
+        }
+      }
+
+      $writer->close();
+      setToken($token);
+      while(ob_get_level() > 0) { ob_end_clean(); }
+      header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      header('Content-Disposition: attachment; filename="'.$fileName.'"');
+      readfile($tempFile);      
+    }
+    finally
+    {
+      if(file_exists($tempFile))
+      {
+        unlink($tempFile);
+      }
+    }
+
+    exit;
+  }
 
   public function get_import_template()
   {
@@ -430,13 +486,13 @@ class Customer_group extends PS_Controller
 
     echo $sc === TRUE ? 'success' : 'failed';
   }
- 
+
   public function clear_filter()
   {
     $filter = array(
       'customer_group_code',
       'customer_group_name',
-      'customer_group_active' 
+      'customer_group_active'
     );
 
     return clear_filter($filter);

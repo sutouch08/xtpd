@@ -37,21 +37,12 @@ class Users extends PS_Controller
 		}
 		else
 		{
-			//--- แสดงผลกี่รายการต่อหน้า
-			$perpage = get_filter('set_rows', 'rows', 20);
-			//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-			if($perpage > 300)
-			{
-				$perpage = get_filter('rows', 'rows', 300);
-			}
-
+			$perpage = get_rows();
 			$segment = 3; //-- url segment
 			$rows = $this->user_model->count_rows($filter);
-
-			//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+			$data = $this->user_model->get_list($filter, $perpage, $this->uri->segment($segment));			
 			$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
 
-			$data = $this->user_model->get_list($filter, $perpage, $this->uri->segment($segment));
 			$teamName = [];
 			$areaName = [];
 			$groupName = [];
@@ -67,7 +58,6 @@ class Users extends PS_Controller
 						$groupName[$ug->id] = $ug->name;
 					}
 				}
-
 
 				$teams = $this->sales_team_model->get_all();
 
@@ -96,7 +86,6 @@ class Users extends PS_Controller
 			$filter['areaName'] = $areaName;
 
 			$this->pagination->initialize($init);
-
 			$this->load->view('users/users_list', $filter);
 		}
 	}
@@ -110,12 +99,11 @@ class Users extends PS_Controller
 			$ds['sale_list'] = $this->user_model->get_all_slp();
 			$ds['price_list'] = $this->price_list_model->get_all();
 			$ds['sales_team'] = $this->sales_team_model->get_all();
-
 			$this->load->view('users/user_add', $ds);
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -126,7 +114,7 @@ class Users extends PS_Controller
 
 		if($this->pm->can_add)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->emp_name) && ! empty($ds->ugroup))
 			{
@@ -166,8 +154,7 @@ class Users extends PS_Controller
 									'user_role' => "Lead"
 								);
 
-								$this->user_model->add_user_team($arr);
-								// $this->user_model->add_user_condition($arr);
+								$this->user_model->add_user_team($arr);								
 							}
 						}
 
@@ -190,7 +177,6 @@ class Users extends PS_Controller
 						$sc = FALSE;
 						$this->error = "Insert user failed";
 					}
-
 				}
 				else
 				{
@@ -217,8 +203,8 @@ class Users extends PS_Controller
 	public function is_exists_uname()
 	{
 		$sc = TRUE;
-		$id = $this->input->post('id');
-		$uname = trim($this->input->post('uname'));
+		$id = $this->input->post('id') ?? '';
+		$uname = trim($this->input->post('uname') ?? '');
 
 		if($this->user_model->is_exists_uname($uname, $id))
 		{
@@ -252,7 +238,6 @@ class Users extends PS_Controller
 				}
 
 				$user->priceList = $pl;
-
 				$user_team = $this->user_model->get_user_team($id);
 				$uTeam = array();
 
@@ -293,7 +278,7 @@ class Users extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->id) && ! empty($ds->emp_id) && ! empty($ds->ugroup))
 			{
@@ -608,9 +593,4 @@ class Users extends PS_Controller
 
 		return clear_filter($filter);
 	}
-
-
-}//--- end class
-
-
- ?>
+}

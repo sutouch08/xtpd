@@ -5,8 +5,7 @@ class User_pwd extends PS_Controller
   public $title = 'Change Password';
 	public $menu_code = 'change password';
 	public $menu_group_code = 'SC';
-  public $error;
-
+  
 
 	public function __construct()
 	{
@@ -17,7 +16,18 @@ class User_pwd extends PS_Controller
 
 	public function index()
 	{
-    redirect($this->home.'/change');
+    if (!empty($this->_user->uid))
+    {
+      $this->pm->can_view = 1;
+      $this->pm->can_edit = 1;
+
+      $ds['data'] = $this->_user;
+      $this->load->view('users/change_pwd', $ds);
+    }
+    else
+    {
+      $this->error_page();
+    }
 	}
 
 
@@ -35,14 +45,14 @@ class User_pwd extends PS_Controller
     {
       $this->error_page();
     }
-
 	}
 
 
   public function verify_password()
   {
     $sc = TRUE;
-    $pwd = trim($this->input->post('pwd'));
+    $pwd = trim($this->input->post('pwd') ?? '');
+
     if(!empty($this->_user))
     {
       if(!password_verify($pwd, $this->_user->pwd))
@@ -86,4 +96,4 @@ class User_pwd extends PS_Controller
 	}
 
 }
- ?>
+ 

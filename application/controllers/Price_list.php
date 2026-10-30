@@ -123,8 +123,4 @@ class Price_list extends PS_Controller
 
 		return clear_filter($filter);
 	}
-
-}//--- end class
-
-
- ?>
+}

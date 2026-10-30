@@ -17,12 +17,13 @@ class Order_approval extends PS_Controller
     $this->load->helper('sales_team_condition');
     $this->load->helper('orders');
 
-    $this->disSale = getConfig('USE_DISCSALE') == 1 ? TRUE : FALSE;
+    $this->disSale = is_true(getConfig('USE_DISCSALE'));
   }
 
   public function index()
   {
     $this->title = "Order Approval - List";
+
     $filter = array(
       'con_id' => get_filter('con_id', 'ap_con_id', 'all'),
       'code' => get_filter('code', 'ap_code', ''),     
@@ -38,21 +39,20 @@ class Order_approval extends PS_Controller
     if ($this->input->post('search'))
     {
       redirect($this->home);
+      exit;
     }
-    else
-    {
-      $perpage = get_rows();
-      $apv = $this->order_approval_model->get_approver_by_user_id($this->_user->id);
-      $condition = empty($apv) ? [0] : $this->order_approval_model->get_approver_conditions($this->_user->id);
-      $filter['conditions'] = $condition;
-      $filter['min_amount'] = empty($apv) ? 0 : $apv->min_amount;
-      $filter['max_amount'] = empty($apv) ? 0 : $apv->amount;
-      $rows = empty($apv) ? 0 : $this->order_approval_model->count_rows($filter);
-      $filter['data'] = empty($apv) ? NULL : $this->order_approval_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
-      $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
-      $this->pagination->initialize($init);
-      $this->load->view('order_approval/order_approval_list', $filter);
-    }
+
+    $perpage = get_rows();
+    $apv = $this->order_approval_model->get_approver_by_user_id($this->_user->id);
+    $condition = empty($apv) ? [0] : $this->order_approval_model->get_approver_conditions($this->_user->id);
+    $filter['conditions'] = $condition;
+    $filter['min_amount'] = empty($apv) ? 0 : $apv->min_amount;
+    $filter['max_amount'] = empty($apv) ? 0 : $apv->amount;
+    $rows = empty($apv) ? 0 : $this->order_approval_model->count_rows($filter);
+    $filter['data'] = empty($apv) ? NULL : $this->order_approval_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
+    $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+    $this->pagination->initialize($init);
+    $this->load->view('order_approval/order_approval_list', $filter);
   }
 
   
@@ -61,7 +61,7 @@ class Order_approval extends PS_Controller
     $sc = TRUE;
     $code = NULL;
     $doc = NULL;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '{}');
     
     if(empty($ds))
     {
@@ -99,16 +99,29 @@ class Order_approval extends PS_Controller
       
       if(!empty($ds->items))
       {
+        $this->db->trans_begin();
+
         foreach($ds->items as $item)
         {
           if($item->status == "A")
           {
-            $this->orders_model->approve_detail($item->id);
+            if( ! $this->orders_model->approve_detail($item->id)) 
+            {
+              $sc = FALSE; 
+              set_error('update');
+              break;
+            }
           }
 
           if($item->status == "R")
           {
-            $this->orders_model->reject_detail($item->id, get_null($item->reject_text));
+            if( ! $this->orders_model->reject_detail($item->id, get_null($item->reject_text)))
+            {
+              $sc = FALSE;
+              set_error('update');
+              break;
+            }
+
             $approval_status = 'P';
           }
         }
@@ -121,14 +134,20 @@ class Order_approval extends PS_Controller
           'Approval_status' => $approval_status
         );
 
-        if( ! $this->orders_model->update($code, $arr))
+        if($sc === TRUE && ! $this->orders_model->update($code, $arr))
         {
           $sc = FALSE;
           set_error('update');
         }
+
+        if($sc === TRUE)
+        {
+          $this->db->trans_commit();
+          $this->doExport($code);
+        }
         else
         {
-          $this->doExport($code);
+          $this->db->trans_rollback();          
         }
       }
     }
@@ -142,7 +161,7 @@ class Order_approval extends PS_Controller
     $sc = TRUE;
     $code = NULL;
     $doc = NULL;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '{}');
 
     if(empty($ds))
     {
@@ -168,8 +187,14 @@ class Order_approval extends PS_Controller
       {
         if($this->can_approve($doc))
         {
-          $this->orders_model->reject_details($code);
+          $this->db->trans_begin();
 
+          if( ! $this->orders_model->reject_details($code))
+          {
+            $sc = FALSE;
+            $this->error = "Failed to reject order details";
+          }
+          
           //--- approve order
           $arr = array(
             'Approved' => 'R',
@@ -178,11 +203,15 @@ class Order_approval extends PS_Controller
             'Approval_status' => 'R'
           );
 
-          $this->orders_model->update($code, $arr);
-
+          if($sc === TRUE && ! $this->orders_model->update($code, $arr))
+          {
+            $sc = FALSE;
+            set_error('update');
+          }
+          
           $items = $ds->items;
 
-          if(!empty($items))
+          if($sc === TRUE && !empty($items))
           {
             foreach($items as $item)
             {
@@ -191,9 +220,24 @@ class Order_approval extends PS_Controller
               if(!empty($reject_text))
               {
                 $arr = array('reject_text' => $item->reject_text);
-                $this->orders_model->update_detail($item->id, $arr);
+
+                if( ! $this->orders_model->update_detail($item->id, $arr))
+                {
+                  $sc = FALSE;
+                  $this->error = "failed to update item reject reason";
+                  break;
+                }
               }
             }
+          }
+
+          if($sc === TRUE)
+          {
+            $this->db->trans_commit();
+          }
+          else
+          {
+            $this->db->trans_rollback();
           }
         }
         else
@@ -268,6 +312,7 @@ class Order_approval extends PS_Controller
             if ($rs->free_item == 0)
             {
               $open_qty = (!empty($doc->DocNum) ? $this->orders_model->get_open_qty($doc->code, $rs->ItemCode) : ($rs->freeQty + $rs->Qty));
+              $status = $doc->Approved == 'P' ? 'P' : $rs->status;
               
               $ds['items'][] = array(
                 'id' => $rs->id,
@@ -282,8 +327,8 @@ class Order_approval extends PS_Controller
                 'dis' => $rs->discount_sales == 1 ? '<i class="fa fa-check blue"></i>' : '',
                 'lineText' => $rs->LineText,
                 'openQty' => number($open_qty, 2),                
-                'checkbox' => get_checkbox($rs->id, $rs->status, $can_approve, $no), //--- orders_helper
-                'rejectbox' => get_rejectbox($rs->id, $rs->status, $can_approve, $no)
+                'checkbox' => get_checkbox($rs->id, $status, $can_approve, $no), //--- orders_helper
+                'rejectbox' => get_rejectbox($rs->id, $status, $can_approve)
               );              
 
               $no++;
@@ -323,41 +368,28 @@ class Order_approval extends PS_Controller
       return TRUE;
     }
 
-    $this->load->model('sales_team_condition_model');   
-    //---- อยู่ในรายชื่อที่มีสิทธิ์ อนุมัติมั้ย
+    $this->load->model('sales_team_condition_model');       
     $approver = $this->sales_team_condition_model->get_approver($order->Condition_id, $this->_user->id);
-
-    if (! empty($approver))
-    {
-      if ($approver->amount >= $order->DocTotal)
-      {
-        return  TRUE;
-      }
-    }
-
-    return FALSE;
+    return !empty($approver) && $approver->amount >= $order->DocTotal;    
   }
 
   public function doExport($code)
-  {
-    $sc = TRUE;
-
-    $this->load->library('export');
+  {    
+    $this->load->library('export');   
 
     if (!$this->export->export_order($code))
     {
-      $sc = FALSE;
       $this->error = $this->export->error;
+      return FALSE;
     }
 
-    return $sc;
+    return TRUE;
   }
 
 
   public function clear_filter()
   {
     $filter = array('ap_con_id', 'ap_code', 'ap_po', 'ap_customer', 'ap_user_id', 'ap_fromDate', 'ap_toDate', 'is_discount_sales', 'ap_min_amount');
-    clear_filter($filter);
+    return clear_filter($filter);
   }  
-
-} // end class 
+}

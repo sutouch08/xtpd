@@ -61,5 +61,4 @@ class Sync_customer extends CI_Controller
 
     $this->customer_model->update_last_sync_date();
   }
-
-} //--- end class
+} 

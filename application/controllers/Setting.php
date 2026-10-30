@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Setting extends PS_Controller{
 	public $menu_code = 'SETTING';
-	public $menu_group_code = 'ADMIN'; //--- System security
+	public $menu_group_code = 'ADMIN'; 
 	public $title = 'Setting';
 
   public function __construct()
@@ -36,10 +36,8 @@ class Setting extends PS_Controller{
 		}
 
 		$ds['priceList'] = $this->user_model->get_all_price_list();
-
 		$this->load->view('setting/configs', $ds);
   }
-
 
 
 	public function update_config()
@@ -50,6 +48,7 @@ class Setting extends PS_Controller{
     {
       $this->error = "Cannot update : ";
       $configs = $this->input->post();
+
       foreach($configs as $name => $value)
       {
         if(! $this->config_model->update($name, $value))
@@ -67,11 +66,4 @@ class Setting extends PS_Controller{
 
   	$this->_response($sc);
   }
-
-
-
-
-}//--- end class
-
-
- ?>
+}

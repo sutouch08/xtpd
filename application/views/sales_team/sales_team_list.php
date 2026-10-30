@@ -9,25 +9,26 @@
 		</p>
 	</div>
 </div><!-- End Row -->
-<hr class="padding-5"/>
+<hr class="padding-5" />
 <form id="searchForm" method="post" action="<?php echo current_url(); ?>">
-<div class="row">
-  <div class="col-lg-2 col-md-2-harf col-sm-3 col-xs-6 padding-5">
-    <label>Description</label>
-    <input type="text" class="form-control input-sm text-center search-box" name="name" value="<?php echo $name; ?>" />
-  </div>
+	<div class="row">
+		<div class="col-lg-2 col-md-2-harf col-sm-3 col-xs-6 padding-5">
+			<label>Description</label>
+			<input type="text" class="form-control input-sm text-center search-box" name="name" value="<?php echo $name; ?>" />
+		</div>
 
-  <div class="col-lg-1-harf col-md-1-harf col-sm-1-harf col-xs-3 padding-5">
-    <label class="display-block not-show">buton</label>
-    <button type="submit" class="btn btn-xs btn-primary btn-block"><i class="fa fa-search"></i> Search</button>
-  </div>
-	<div class="col-lg-1-harf col-md-1-harf col-sm-1-harf col-xs-3 padding-5">
-    <label class="display-block not-show">buton</label>
-    <button type="button" class="btn btn-xs btn-warning btn-block" onclick="clearFilter()"><i class="fa fa-retweet"></i> Reset</button>
-  </div>
-</div>
-<hr class="margin-top-15 padding-5">
+		<div class="col-lg-1-harf col-md-1-harf col-sm-1-harf col-xs-3 padding-5">
+			<label class="display-block not-show">buton</label>
+			<button type="submit" class="btn btn-xs btn-primary btn-block"><i class="fa fa-search"></i> Search</button>
+		</div>
+		<div class="col-lg-1-harf col-md-1-harf col-sm-1-harf col-xs-3 padding-5">
+			<label class="display-block not-show">buton</label>
+			<button type="button" class="btn btn-xs btn-warning btn-block" onclick="clearFilter()"><i class="fa fa-retweet"></i> Reset</button>
+		</div>
+	</div>
+	<input type="hidden" name="search" value="1" />
 </form>
+<hr class="margin-top-15 padding-5" />
 <?php echo $this->pagination->create_links(); ?>
 
 <div class="row">
@@ -42,18 +43,18 @@
 				</tr>
 			</thead>
 			<tbody>
-			<?php if(!empty($data)) : ?>
-				<?php $no = $this->uri->segment(3) + 1; ?>
-				<?php foreach($data as $rs) : ?>
-					<tr>						
-						<td class="middle text-center"><?php echo $rs->id; ?></td>
-						<td class="middle"><?php echo $rs->name; ?></td>
-						<td class="middle"><?php echo thai_date($rs->date_upd, TRUE) ?></td>
-						<td class="middle"><?php echo uname($rs->update_by); ?></td>
-					</tr>
-					<?php $no++; ?>
-				<?php endforeach; ?>
-			<?php endif; ?>
+				<?php if (!empty($data)) : ?>
+					<?php $no = $this->uri->segment(3) + 1; ?>
+					<?php foreach ($data as $rs) : ?>
+						<tr>
+							<td class="middle text-center"><?php echo $rs->id; ?></td>
+							<td class="middle"><?php echo $rs->name; ?></td>
+							<td class="middle"><?php echo thai_date($rs->date_upd, TRUE) ?></td>
+							<td class="middle"><?php echo uname($rs->update_by); ?></td>
+						</tr>
+						<?php $no++; ?>
+					<?php endforeach; ?>
+				<?php endif; ?>
 			</tbody>
 		</table>
 	</div>

@@ -1,4 +1,3 @@
-var HOME = BASE_URL + "special_price_list/";
 var click = 0;
 
 function goBack() {
@@ -629,3 +628,48 @@ function getImportTemplate() {
   const url = `${HOME}get_import_template`;
   window.location.href = url;
 }
+
+function getFile() {
+  $('#uploadFile').click();
+}
+
+const uploadFile = document.getElementById('uploadFile');
+
+uploadFile.addEventListener('change', async function() {
+  const file = this.files[0];
+
+  if (file.size > 5000000) {
+    swal("ขนาดไฟล์ใหญ่เกินไป", "ไฟล์แนบต้องมีขนาดไม่เกิน 5 MB", "error");
+    this.value = '';
+    return false;
+  }
+
+  if(file) {
+    const token = generateUID();
+    const id = $('#id').val();
+    const formData = new FormData();
+    formData.append('uploadFile', file);
+    formData.append('token', token);
+    formData.append('id', id);
+
+    try {
+      get_download(token);
+      const response = await fetch(`${HOME}import_details`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const res = await response.json();
+
+      if(res.status === 'success') {
+        location.reload();
+      } 
+      else {
+        showError(res.message);
+      }
+    } 
+    catch (error) {
+      showError(error);
+    }
+  }
+});

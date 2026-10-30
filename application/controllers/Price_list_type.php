@@ -50,7 +50,7 @@ class Price_list_type extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 		$active = $this->input->post('status') ? 1 : 0;
 
 		if ( ! empty($name))
@@ -107,7 +107,7 @@ class Price_list_type extends PS_Controller
 	{
 		$sc = TRUE;
 		$id = $this->input->post('id');
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 		$active = $this->input->post('status') ? 1 : 0;
 
 		if (! empty($id) && ! empty($name))

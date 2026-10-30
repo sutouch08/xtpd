@@ -3,43 +3,38 @@ function select_department($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('department_model');
+  $sc = '';
   $list = $ci->department_model->get_all();
 
   if(!empty($list))
   {
-    $sc = '';
-
     foreach($list as $rs)
     {
       $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
     }
 
-    return $sc;
   }
-
-  return NULL;
+  
+  return $sc;
 }
 
 
 function select_sales_team($id = '')
 {
+  $sc = '';
   $ci =& get_instance();
   $ci->load->model('sales_team_model');
   $list = $ci->sales_team_model->get_all();
 
   if(!empty($list))
-  {
-    $sc = '';
-
+  {    
     foreach($list as $rs)
     {
       $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
-    }
-
-    return $sc;
+    }    
   }
 
-  return NULL;
+  return $sc;
 }
 
 
@@ -61,10 +56,10 @@ function select_sales_person($id = '')
     return $sc;
   }
 
-  return NULL;
+  return '';
 }
 
-function department_name($id)
+function department_name($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('department_model');

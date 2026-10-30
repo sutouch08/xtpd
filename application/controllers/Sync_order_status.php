@@ -124,7 +124,4 @@ class Sync_order_status extends CI_Controller
   {
     return $this->db->insert('sync_logs', $arr);
   }
-
-} //--- end class
-
- ?>
+}

@@ -16,8 +16,6 @@ class Sale_team extends PS_Controller
 		$this->load->helper('approve');
   }
 
-
-
   public function index()
   {
 		$this->title = "Sales team - List";
@@ -26,25 +24,20 @@ class Sale_team extends PS_Controller
 			'name' => get_filter('name', 'team_name', '')
 		);
 
-				//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->sale_team_model->count_rows($filter);
+		$filter['data'] = $this->sale_team_model->get_list($filter, $perpage, $this->uri->segment($segment));	
 
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->sale_team_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		if(!empty($result))
+		if(!empty($filter['data']))
 		{
-			foreach($result as $rs)
+			foreach($filter['data'] as $rs)
 			{
 				$rs->member = $this->sale_team_model->count_members($rs->id);
 				$customerGroup = $this->sale_team_model->get_team_customer_group($rs->id);
@@ -63,7 +56,6 @@ class Sale_team extends PS_Controller
 				}
 
 				$rs->customerGroup = $cg;
-
 				$approver = $this->sale_team_model->get_team_approver($rs->id);
 
 				if(!empty($approver))
@@ -80,13 +72,10 @@ class Sale_team extends PS_Controller
 			}
 		}
 
-
-    $filter['data'] = $result;
-
+		$init	= pagination_config($this->home . '/index/', $rows, $perpage, $segment);
 		$this->pagination->initialize($init);
     $this->load->view('sale_team/sale_team_list', $filter);
   }
-
 
 
 	public function add_new()
@@ -100,7 +89,7 @@ class Sale_team extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -108,7 +97,7 @@ class Sale_team extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 		$sale_person_id = $this->input->post('sale_person');
 		$customer_team_id = $this->input->post('customer_team');
 
@@ -133,7 +122,7 @@ class Sale_team extends PS_Controller
 						//--- insert user_customer_group
 						if(!empty($this->input->post('customer_group')))
 						{
-							$customer_group = json_decode($this->input->post('customer_group'));
+							$customer_group = json_decode($this->input->post('customer_group') ?? '');
 
 							if(!empty($customer_group))
 							{
@@ -242,14 +231,13 @@ class Sale_team extends PS_Controller
 	}
 
 
-
 	public function update($id)
 	{
 		$sc = TRUE;
 
 		if($this->pm->can_edit)
 		{
-			$name = trim($this->input->post('name'));
+			$name = trim($this->input->post('name') ?? '');
 			$sale_person_id = $this->input->post('sale_person');
 			$customer_team_id = $this->input->post('customer_team');
 
@@ -297,7 +285,7 @@ class Sale_team extends PS_Controller
 						//--- insert user_customer_group
 						if(!empty($this->input->post('approver')))
 						{
-							$approver = json_decode($this->input->post('approver'));
+							$approver = json_decode($this->input->post('approver') ?? '');
 
 							if(!empty($approver))
 							{
@@ -436,15 +424,7 @@ class Sale_team extends PS_Controller
 
   public function clear_filter()
 	{
-		$filter = array(
-			'team_name'
-		);
-
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter('team_name');
 	}
 
-}//--- end class
-
-
- ?>
+}

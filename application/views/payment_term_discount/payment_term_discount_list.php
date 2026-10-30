@@ -45,8 +45,9 @@
 			<button type="button" class="btn btn-xs btn-warning btn-block" onclick="clearFilter()">Reset</button>
 		</div>
 	</div>
-	<hr class="margin-top-15 padding-5">
+	<input type="hidden" name="search" value="1" />
 </form>
+<hr class="margin-top-15 padding-5">
 <?php echo $this->pagination->create_links(); ?>
 
 <div class="row">
@@ -92,7 +93,7 @@
 									<label style="height: 22px;">
 										<input class="ace ace-switch ace-switch-6" type="checkbox" value="1" onchange="toggleActive(<?php echo $rs->id; ?>, this)" <?php echo $rs->active ? 'checked' : ''; ?>>
 										<span class="lbl"></span>
-									</label>									
+									</label>
 								<?php else : ?>
 									<?php echo is_active($rs->active); ?>
 								<?php endif; ?>

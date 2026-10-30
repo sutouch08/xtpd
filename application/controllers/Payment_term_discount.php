@@ -28,24 +28,17 @@ class Payment_term_discount extends PS_Controller
 			'status' => get_filter('status', 'payment_status', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->payment_term_discount_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$filter['data'] = $this->payment_term_discount_model->get_list($filter, $perpage, $this->uri->segment($segment));
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->payment_term_discount_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $result;
-
 		$this->pagination->initialize($init);
 		$this->load->view('payment_term_discount/payment_term_discount_list', $filter);
 	}
@@ -61,7 +54,7 @@ class Payment_term_discount extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -72,7 +65,7 @@ class Payment_term_discount extends PS_Controller
 
 		if($this->pm->can_add)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '');
 
 			if( ! empty($ds))
 			{
@@ -182,7 +175,7 @@ class Payment_term_discount extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -193,7 +186,7 @@ class Payment_term_discount extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '');
 
 			if( ! empty($ds))
 			{
@@ -377,8 +370,4 @@ class Payment_term_discount extends PS_Controller
 
 		return clear_filter($filter);
 	}
-
-}//--- end class
-
-
- ?>
+}

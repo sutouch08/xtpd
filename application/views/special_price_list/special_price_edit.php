@@ -1,7 +1,7 @@
 <?php $this->load->view('include/header'); ?>
 <style>
 	.tableFixHead thead th {
-		outline:0;
+		outline: 0;
 	}
 
 	.fix-header {
@@ -32,7 +32,7 @@ $items = $tab === 'items' ? 'active in' : '';
 	<div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 padding-5 padding-right-0" style="padding-top:5px;">
 		<ul id="myTab1" class="setting-tabs" style="margin-left:0px;">
 			<li class="li-block <?php echo $info; ?>" onclick="changeURL(<?php echo $doc->id; ?>, 'info')"><a href="#info" data-toggle="tab">Price List</a></li>
-			<li class="li-block <?php echo $items; ?>" onclick="changeURL(<?php echo $doc->id; ?>, 'items')"><a href="#items" data-toggle="tab">Items</a></li>			
+			<li class="li-block <?php echo $items; ?>" onclick="changeURL(<?php echo $doc->id; ?>, 'items')"><a href="#items" data-toggle="tab">Items</a></li>
 		</ul>
 	</div>
 	<div class="col-lg-10 col-md-10 col-sm-10 col-xs-12 padding-5" style="padding-top:5px; border-left:solid 1px #ccc; min-height:600px; max-height:1500px;">
@@ -109,13 +109,13 @@ $items = $tab === 'items' ? 'active in' : '';
 														<input type="checkbox" class="ace" onchange="checkAllCustomerGroups($(this))" />
 														<span class="lbl"></span>
 													</label>
-												</th>												
+												</th>
 												<th class="fix-width-100 middle fix-header">Code</th>
 												<th class="min-width-200 middle fix-header">Description</th>
 											</tr>
 										</thead>
 										<tbody>
-											<?php if (!empty($customerGroupList)) : ?>											
+											<?php if (!empty($customerGroupList)) : ?>
 												<?php foreach ($customerGroupList as $rs) : ?>
 													<tr>
 														<td class="middle text-center">
@@ -123,15 +123,15 @@ $items = $tab === 'items' ? 'active in' : '';
 																<input type="checkbox" class="ace cus-chk" value="<?php echo $rs->id; ?>" <?php echo isset($customerGroups[$rs->id]) ? 'checked' : ''; ?> />
 																<span class="lbl"></span>
 															</label>
-														</td>														
+														</td>
 														<td class="middle"><?php echo $rs->code; ?></td>
 														<td class="middle"><?php echo $rs->name; ?></td>
-													</tr>													
-												<?php endforeach; ?>
-												<?php else : ?>
-													<tr>
-														<td colspan="3" class="middle text-center">No customer groups found</td>
 													</tr>
+												<?php endforeach; ?>
+											<?php else : ?>
+												<tr>
+													<td colspan="3" class="middle text-center">No customer groups found</td>
+												</tr>
 											<?php endif; ?>
 										</tbody>
 									</table>
@@ -181,7 +181,7 @@ $items = $tab === 'items' ? 'active in' : '';
 						</div>
 						<div class="col-lg-1 col-md-1-harf col-sm-2 col-xs-6 padding-5">
 							<label class="display-block not-show">Import</label>
-							<button type="button" class="btn btn-sm btn-white btn-primary btn-block" style="height:30px;" onclick="showImportModal()"><i class="fa fa-upload"></i> Import</button>
+							<button type="button" class="btn btn-sm btn-white btn-primary btn-block" style="height:30px;" onclick="getFile()"><i class="fa fa-upload"></i> Import</button>
 						</div>
 					</div>
 				</div>
@@ -232,14 +232,14 @@ $items = $tab === 'items' ? 'active in' : '';
 					</div>
 				</div>
 
-			</div><!-- tab-pane -->			
+			</div><!-- tab-pane -->
 		</div><!-- End Tab Content -->
 	</div><!-- End Col-10 -->
 </div><!-- End Row -->
 
 <input type="hidden" id="id" value="<?php echo $doc->id; ?>" />
-
-<?php $this->load->view('special_price_list/import_items'); ?>
+<input type="file" class="hide" name="uploadFile" id="uploadFile" accept=".xlsx" />
+<input type="hidden" id="token" value="" />
 
 <script id="item-row-template" type="text/x-handlebarsTemplate">
 	<tr id="item-row-{{id}}">

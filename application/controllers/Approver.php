@@ -24,26 +24,18 @@ class Approver extends PS_Controller{
 			'status' => get_filter('status', 'ap_status', 'all')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->approver_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$filter['data'] = $this->approver_model->get_list($filter, $perpage, $this->uri->segment($segment));		
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$rs = $this->approver_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $rs;
-
 		$this->pagination->initialize($init);
-
 		$this->load->view('approver/approver_list', $filter);
 	}
 
@@ -58,7 +50,7 @@ class Approver extends PS_Controller{
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE); // deny page with header
 		}
 	}
 
@@ -69,7 +61,7 @@ class Approver extends PS_Controller{
 
 		if($this->pm->can_add)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->uname) && ! empty($ds->max_amount))
 			{
@@ -146,7 +138,7 @@ class Approver extends PS_Controller{
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -157,7 +149,7 @@ class Approver extends PS_Controller{
 
 		if($this->pm->can_edit)
 		{
-			$ds = json_decode($this->input->post('data'));
+			$ds = json_decode($this->input->post('data') ?? '{}');
 
 			if( ! empty($ds) && ! empty($ds->id) && ! empty($ds->max_amount))
 			{
@@ -292,11 +284,6 @@ class Approver extends PS_Controller{
 			'ap_amount'
 		);
 
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter($filter);		
 	}
-
-}//--- end class
-
-
- ?>
+}

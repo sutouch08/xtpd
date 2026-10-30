@@ -28,7 +28,7 @@ class Orders extends PS_Controller
 		$this->load->helper('approve');
 		$this->load->helper('credit_approval');
 
-		$this->disSale = getConfig('USE_DISCSALE') == 1 ? TRUE : FALSE;
+		$this->disSale = is_true(getConfig('USE_DISCSALE'));
 	}
 
 	public function index()
@@ -59,36 +59,22 @@ class Orders extends PS_Controller
 		if ($this->input->post('search'))
 		{
 			redirect($this->home);
+			exit;
 		}
-		else
-		{
-			//--- แสดงผลกี่รายการต่อหน้า
-			$perpage = get_filter('set_rows', 'rows', 20);
-			//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-			if ($perpage > 300)
-			{
-				$perpage = get_filter('rows', 'rows', 300);
-			}
 
-			$segment = 3; //-- url segment
-			$rows = $this->orders_model->count_rows($filter);
-
-			//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
-			$init	= pagination_config($this->home . '/index/', $rows, $perpage, $segment);
-
-			$rs = $this->orders_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-			$filter['data'] = $rs;
-
-			$this->pagination->initialize($init);
-			$this->load->view('orders/orders_list', $filter);
-		}
+		$perpage = get_rows();
+		$segment = 3; //-- url segment
+		$rows = $this->orders_model->count_rows($filter);
+		$filter['data'] = $this->orders_model->get_list($filter, $perpage, $this->uri->segment($segment));
+		$init	= pagination_config($this->home . '/index/', $rows, $perpage, $segment);
+		$this->pagination->initialize($init);
+		$this->load->view('orders/orders_list', $filter);
 	}
 
 	public function get_order_flow()
 	{
 		$html = "";
-		$ds = json_decode(file_get_contents('php://input'));
+		$ds = json_decode(file_get_contents('php://input') ?? '{}');
 
 		if (! empty($ds))
 		{
@@ -102,6 +88,7 @@ class Orders extends PS_Controller
 	{
 		$this->load->model('report/customer_status_model');
 		$CardCode = $this->input->get('CardCode');
+
 		$ds = [
 			'CardCode' => '',
 			'CardName' => '',
@@ -116,6 +103,7 @@ class Orders extends PS_Controller
 		{
 			$invoiceCount = $this->customer_status_model->count_customer_invoice($CardCode);
 			$today = date('Y-m-d');
+
 			$ds = [
 				'CardCode' => $bp->CardCode,
 				'CardName' => $bp->CardName,
@@ -124,17 +112,13 @@ class Orders extends PS_Controller
 				'InvoiceCount' => number($invoiceCount)
 			];
 		}
-		else
-		{
-			$sc = FALSE;
-			$this->error = "Customer not found";
-		}
-
+		
 		$arr = array(
 			'status' => ! empty($bp) ? 'success' : 'error',
-			'message' => ! empty($bp) ? 'success' : $this->error,
+			'message' => ! empty($bp) ? 'success' : 'customer not found',
 			'data' => $ds,
 		);
+
 		echo json_encode($arr);
 	}
 
@@ -204,8 +188,7 @@ class Orders extends PS_Controller
 		{
 			$credit = empty($card->CustCode) ? $this->customer_model->get_credit_details($card->CardCode) : $this->customer_model->get_credit_details_by_hCode($card->CustCode);
 			$CreditLine = $card->isRegular == 1 ? floatval($credit->CreditLine) : floatval(getConfig('GLOBAL_CREDIT_LINE'));
-			//$CreditLine = $CreditLine <= 0 ? floatval(getConfig('GLOBAL_CREDIT_LINE')) : $CreditLine;
-
+			
 			if (! empty($credit))
 			{
 				$orderUsed = $this->orders_model->get_credit_used_amount($card->CardCode, $card->CustCode);
@@ -221,7 +204,7 @@ class Orders extends PS_Controller
 		$sc = TRUE;
 		$cardCode = $this->input->post('CardCode');
 		$type = $this->input->post('type');
-		$html = "<option value=''>Select</option>";
+		$html = '<option value="">Select</option>';
 		$PL = [];
 
 		$priceList = $this->user_model->get_user_price_list($this->_user->id);
@@ -375,15 +358,7 @@ class Orders extends PS_Controller
 	{
 		$date = date('Y-m-d 00:00:00');
 		$rate = $this->orders_model->get_currency_rate($code, $date);
-
-		if (! empty($rate))
-		{
-			echo $rate;
-		}
-		else
-		{
-			echo "notfound";
-		}
+		echo (! empty($rate) ? $rate : "notfound");		
 	}
 
 	public function get_user_customer_list($type = 'V')
@@ -403,7 +378,7 @@ class Orders extends PS_Controller
 
 			foreach ($list as $rs)
 			{
-				$arr = array(
+				$ds[] = array(
 					'CardCode' => $rs->CardCode,
 					'CardName' => $rs->CardName,
 					'CustCode' => $rs->CustCode,
@@ -419,22 +394,16 @@ class Orders extends PS_Controller
 					'salePerson' => $rs->salePerson, //-- U_SALE_PERSON
 					'department' => $rs->department, //-- U_TPD_BI_Department
 					'regular' => $rs->isRegular
-				);
-
-				array_push($ds, $arr);
-			}
-
-			echo json_encode($ds);
+				);				
+			}			
 		}
-		else
-		{
-			echo "Customer relate {$type} not found";
-		}
+
+		echo empty($list) ? "Customer relate {$type} not found" : json_encode($ds);
 	}
 
 	public function get_address_ship_to_code()
 	{
-		$code = trim($this->input->get('CardCode'));
+		$code = trim($this->input->get('CardCode') ?? '');
 		$ds = array();
 
 		if (! empty($code))
@@ -474,8 +443,9 @@ class Orders extends PS_Controller
 
 	public function get_address_ship_to()
 	{
-		$code = trim($this->input->get('CardCode'));
-		$adr_code = trim($this->input->get('Address'));
+		$code = trim($this->input->get('CardCode') ?? '');
+		$adr_code = trim($this->input->get('Address') ?? '');
+
 		if (! empty($code))
 		{
 			$adr = $this->customer_model->get_address_ship_to($code, $adr_code);
@@ -515,7 +485,7 @@ class Orders extends PS_Controller
 
 	public function get_address_bill_to_code()
 	{
-		$code = trim($this->input->get('CardCode'));
+		$code = trim($this->input->get('CardCode') ?? '');
 		$ds = array();
 
 		if (! empty($code))
@@ -549,8 +519,9 @@ class Orders extends PS_Controller
 
 	public function get_address_bill_to()
 	{
-		$code = trim($this->input->get('CardCode'));
-		$adr_code = trim($this->input->get('Address'));
+		$code = trim($this->input->get('CardCode') ?? '');
+		$adr_code = trim($this->input->get('Address') ?? '');
+
 		if (! empty($code))
 		{
 			$adr = $this->customer_model->get_address_bill_to($code, $adr_code);
@@ -596,7 +567,7 @@ class Orders extends PS_Controller
 		}
 		elseif ($priceList == 'x')
 		{
-			$txt = trim($_REQUEST['term']);
+			$txt = trim($_REQUEST['term'] ?? '');
 
 			$this->db
 				->select('spi.ItemCode, spi.ItemName')
@@ -674,7 +645,7 @@ class Orders extends PS_Controller
 		}
 		else
 		{
-			$txt = trim($_REQUEST['term']);
+			$txt = trim($_REQUEST['term'] ?? '');
 
 			$qr  = "SELECT OITM.ItemCode, OITM.ItemName, ITM1.PriceList, ITM1.Price ";
 			$qr .= "FROM OITM INNER JOIN ITM1 ON OITM.ItemCode = ITM1.ItemCode ";
@@ -899,12 +870,11 @@ class Orders extends PS_Controller
 	function get_item_data()
 	{
 		$sc = TRUE;
-		$code = trim($this->input->get('code'));
-		$PriceList = $this->input->get('priceList');
-		$sp_id = $this->input->get('special_price_id');
+		$code = trim($this->input->get('code') ?? '');
+		$PriceList = $this->input->get('priceList') ?? '';
+		$sp_id = $this->input->get('special_price_id') ?? '';
 		$no = $this->input->get('no');
-
-		// $this->load->model('item_step_price_model');
+		
 
 		if (! empty($code))
 		{
@@ -1039,7 +1009,8 @@ class Orders extends PS_Controller
 		$sc = TRUE;
 		$orderCode = $this->input->post('orderCode');
 		$poCode = $this->input->post('poCode');
-		$file = isset($_FILES['uploadFile']) ? $_FILES['uploadFile'] : NULL;		
+		$file = isset($_FILES['uploadFile']) ? $_FILES['uploadFile'] : NULL;
+		
 		if (! empty($orderCode))
 		{			
 			if (! empty($file))
@@ -1094,8 +1065,8 @@ class Orders extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$header = json_decode($this->input->post('header'));
-		$details = json_decode($this->input->post('details'));
+		$header = json_decode($this->input->post('header') ?? '');
+		$details = json_decode($this->input->post('details') ?? '');
 		$file = isset($_FILES['uploadFile']) ? $_FILES['uploadFile'] : NULL;
 		$up = 1; //--- 1 = upload file success, 0 = upload file fail
 		$dfWhsCode = getConfig('DEFAULT_WAREHOUSE');
@@ -1165,8 +1136,7 @@ class Orders extends PS_Controller
 					'area_id' => $header->areaId,
 					'team_id' => $team_id,
 					'term_id' => $header->term,
-					'credit_issue' => $credit_issue,
-					//'credit_approval' => $is_over_due == 1 ? 'O' : 'P',
+					'credit_issue' => $credit_issue,					
 					'credit_diff' => $credit_diff,
 					'is_over_due' => $is_over_due,
 					'isRegular' => $header->isRegular
@@ -1189,7 +1159,6 @@ class Orders extends PS_Controller
 
 						if (! empty($item))
 						{
-
 							$sellPrice = $header->PriceList == 'x' ? $rs->SellPrice : ($rs->SellPrice == "" ? $item->price : $rs->SellPrice);
 							$stdPrice = $header->PriceList == 'x' ? $rs->stdPrice : $item->price;
 
@@ -1746,7 +1715,7 @@ class Orders extends PS_Controller
 								'InvNo' => $InvNo,
 								'InvDate' => empty($InvNo) ? NULL : $InvDate,
 								'checkbox' => get_checkbox($rs->id, $rs->status, $can_approve, $no), //--- orders_helper
-								'rejectbox' => ($rs->status == 'P' ? get_rejectbox($rs->id, $rs->status, $can_approve, $no) : $rs->reject_text)
+								'rejectbox' => ($rs->status == 'P' ? get_rejectbox($rs->id, $rs->status, $can_approve) : $rs->reject_text)
 							);
 
 							array_push($ds['items'], $arr);
@@ -1818,7 +1787,6 @@ class Orders extends PS_Controller
 			{
 				if ($order->must_approve == 1 && $order->Approved == 'P')
 				{
-
 					$items = json_decode($this->input->post('items'));
 
 					if (! empty($items))
@@ -1913,12 +1881,14 @@ class Orders extends PS_Controller
 
 						$this->orders_model->update($code, $arr);
 
-						$items = json_decode($this->input->post('items'));
+						$items = json_decode($this->input->post('items') ?? '');
+						
 						if (! empty($items))
 						{
 							foreach ($items as $item)
 							{
 								$reject_text = get_null($item->reject_text);
+
 								if (! empty($reject_text))
 								{
 									$arr = array('reject_text' => $item->reject_text);
@@ -2026,13 +1996,16 @@ class Orders extends PS_Controller
 
 	public function get_sale_name_by_customer()
 	{
-		$cardCode = trim($this->input->get('CardCode'));
+		$cardCode = trim($this->input->get('CardCode') ?? '');
 
 		if (! empty($cardCode))
 		{
 			$saleName = $this->customer_model->get_sale_name_by_customer($cardCode);
-
 			echo $saleName;
+		}
+		else
+		{
+			echo '';
 		}
 	}
 
@@ -2075,8 +2048,7 @@ class Orders extends PS_Controller
 
 	public function get_temp_data()
 	{
-		$code = $this->input->get('code'); //--- U_WEBORDER
-
+		$code = $this->input->get('code') ?? ''; //--- U_WEBORDER
 		$data = $this->orders_model->get_temp_data($code);
 
 		if (! empty($data))
@@ -2107,7 +2079,6 @@ class Orders extends PS_Controller
 				}
 			}
 
-
 			$arr = array(
 				'U_WEB_ORNO' => $data->U_WEB_ORNO,
 				'CardCode' => $data->CardCode,
@@ -2130,7 +2101,7 @@ class Orders extends PS_Controller
 	public function remove_temp()
 	{
 		$sc = TRUE;
-		$code = $this->input->post('code');
+		$code = $this->input->post('code') ?? '';
 		$temp = $this->orders_model->get_temp_status($code);
 
 		if (empty($temp))
@@ -2172,7 +2143,7 @@ class Orders extends PS_Controller
 	public function cancel_order()
 	{
 		$sc = TRUE;
-		$code = $this->input->post('code');
+		$code = $this->input->post('code') ?? '';
 		$temp = $this->orders_model->get_temp_status($code);
 
 		if (empty($temp))
@@ -2279,8 +2250,6 @@ class Orders extends PS_Controller
 			'so_is_export'
 		);
 
-		clear_filter($filter);
-
-		echo 'done';
+		return clear_filter($filter);		
 	}
-} //--- end class
+}

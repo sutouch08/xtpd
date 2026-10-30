@@ -62,8 +62,9 @@
 			<button type="button" class="btn btn-xs btn-warning btn-block" onclick="clearFilter()">Reset</button>
 		</div>
 	</div>
-	<hr class="margin-top-15 padding-5">
+	<input type="hidden" name="search" value="1" />
 </form>
+<hr class="margin-top-15 padding-5">
 <?php echo $this->pagination->create_links(); ?>
 
 <div class="row">
@@ -95,8 +96,8 @@
 									<button type="button" class="btn btn-minier btn-warning" onclick="edit(<?php echo $rs->id; ?>)">
 										<i class="fa fa-pencil"></i>
 									</button>
-									<?php endif; ?>
-									<?php if ($this->pm->can_delete) : ?>
+								<?php endif; ?>
+								<?php if ($this->pm->can_delete) : ?>
 									<button type="button" class="btn btn-minier btn-danger" onclick="getDelete(<?php echo $rs->id; ?>, '<?php echo $rs->uname; ?>')">
 										<i class="fa fa-trash"></i>
 									</button>

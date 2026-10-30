@@ -12,16 +12,19 @@ class PS_Controller extends CI_Controller
   public $_SuperAdmin = FALSE;
   public $isGM = FALSE;
   public $isAdmin = FALSE;
-  public $uid;
-
+  
   public function __construct()
   {
-    parent::__construct();
-    //--- check is user has logged in ?
-    _check_login();
+    parent::__construct();    
+    $uid = get_cookie('uid');
 
-    $this->uid = get_cookie('uid');
-    $this->_user = $this->user_model->get_user_by_uid($this->uid);
+    if(empty($uid) || !$this->user_model->verify_uid($uid))
+    {
+      redirect(base_url().'authentication');
+      exit;
+    }
+
+    $this->_user = $this->user_model->get_user_by_uid($uid);
     $this->_SuperAdmin = $this->_user->ugroup_id == -987654321 ? TRUE : FALSE;
     $this->isGM = $this->_user->role == 'GM' ? TRUE : FALSE;
     $this->isAdmin = $this->_user->role == 'salesAdmin' ? TRUE : FALSE;
@@ -31,11 +34,11 @@ class PS_Controller extends CI_Controller
     if($this->close_system == 1 && $this->_SuperAdmin === FALSE && $this->isGM === FALSE)
     {
       redirect(base_url().'maintenance');
+      exit;
     }
 
     //--- get permission for user
     $this->pm = get_permission($this->menu_code);
-
     $this->ms = $this->load->database('ms', TRUE); //--- SAP database
     $this->mc = $this->load->database('mc', TRUE); //--- Temp Database
 
@@ -49,9 +52,9 @@ class PS_Controller extends CI_Controller
 	}
 
 
-  public function deny_page()
+  public function deny_page($withHeader = FALSE)
   {
-    return $this->load->view('deny_page');
+    return $this->load->view('deny_page', array('withHeader' => $withHeader));
   }
 
 

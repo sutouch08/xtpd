@@ -55,7 +55,7 @@ class Price_list_group extends PS_Controller
   public function add()
   {
     $sc = TRUE;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '');
 
     if (!empty($ds) && ! empty($ds->name))
     {
@@ -151,7 +151,7 @@ class Price_list_group extends PS_Controller
   public function update()
   {
     $sc = TRUE;
-    $ds = json_decode($this->input->post('data'));
+    $ds = json_decode($this->input->post('data') ?? '');
 
     if (! empty($ds) && ! empty($ds->id) && ! empty($ds->name))
     {

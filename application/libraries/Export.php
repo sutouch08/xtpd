@@ -6,18 +6,15 @@ class Export
   public $error;
 
 	public function __construct()
-	{
-    // Assign the CodeIgniter super-object
+	{    
     $this->ci =& get_instance();
 	}
 
 
   public function export_order($code)
   {
-    $this->ci->load->model('orders_model');
-
     $sc = TRUE;
-
+    $this->ci->load->model('orders_model');
 		$order = $this->ci->orders_model->get($code);
 
 		if(!empty($order))
@@ -26,7 +23,6 @@ class Export
 
 			if(!empty($details))
 			{
-
 				$is_exists = $this->ci->orders_model->is_exists_sap_order($code);
 
 				if(! $is_exists)
@@ -44,7 +40,6 @@ class Export
 		          }
 		        }
 		      }
-
 
 					if($sc === TRUE)
 					{
@@ -84,8 +79,7 @@ class Export
               'U_TPD_HDiscSale' => $order->is_discount_sales == 1 ? 'Y' : NULL,
 							'TPD_OrdType' => $order->isExport == 1 ? 'E' : 'L'
 						);
-
-						//--- start transection
+						
 						$this->ci->mc->trans_begin();
 
 						$docEntry = $this->ci->orders_model->add_temp_order($arr);
@@ -96,11 +90,8 @@ class Export
 
 							foreach($details as $rs)
 							{
-								if($sc === FALSE)
-								{
-									break;
-								}
-
+								if($sc === FALSE) break;
+								
 								if($rs->status == 'A')
 								{
 									$price = 	remove_vat($rs->SellPrice, $rs->VatRate);
@@ -163,7 +154,6 @@ class Export
 								$this->ci->mc->trans_rollback();
 							}
 
-
 							if($sc === TRUE)
 							{
 								$arr = array(
@@ -202,5 +192,4 @@ class Export
 
 		return $sc;
   }
-} //--- end class
-?>
+} 

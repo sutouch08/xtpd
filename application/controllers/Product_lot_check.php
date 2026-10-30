@@ -95,7 +95,7 @@ class Product_lot_check extends PS_Controller
 
         if (! empty($items))
         {
-          $ds = '<option value="">Select items (' . count($items) . ')</option>';
+          $ds = '<option value="">Select items (' . count($items ?? []) . ')</option>';
 
           foreach ($items as $rs)
           {
@@ -212,6 +212,5 @@ class Product_lot_check extends PS_Controller
     ));
   }
 
-
-} //--- end class
+}
 	

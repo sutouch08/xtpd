@@ -1,8 +1,6 @@
 <?php
 class Tools extends CI_Controller
-{
-  public $ms;
-
+{  
   public function __construct()
   {
     parent::__construct();
@@ -25,7 +23,5 @@ class Tools extends CI_Controller
 
     echo 'done';
   }
-
 }
 
- ?>

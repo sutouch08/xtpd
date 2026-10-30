@@ -1,5 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
+use OpenSpout\Reader\XLSX\Reader;
 
 class Special_price_list extends PS_Controller
 {
@@ -31,17 +32,16 @@ class Special_price_list extends PS_Controller
 		if ($this->input->post('search'))
 		{
 			redirect($this->home);
+			exit;
 		}
-		else
-		{
-			//--- แสดงผลกี่รายการต่อหน้า
-			$perpage = set_rows();
-			$rows = $this->special_price_list_model->count_rows($filter);
-			$filter['data'] = $this->special_price_list_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
-			$init	= pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
-			$this->pagination->initialize($init);
-			$this->load->view('special_price_list/special_price_list', $filter);
-		}
+
+		//--- แสดงผลกี่รายการต่อหน้า
+		$perpage = set_rows();
+		$rows = $this->special_price_list_model->count_rows($filter);
+		$filter['data'] = $this->special_price_list_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
+		$init	= pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+		$this->pagination->initialize($init);
+		$this->load->view('special_price_list/special_price_list', $filter);
 	}
 
 
@@ -53,7 +53,7 @@ class Special_price_list extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -156,7 +156,7 @@ class Special_price_list extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -363,7 +363,7 @@ class Special_price_list extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -480,14 +480,14 @@ class Special_price_list extends PS_Controller
 		}
 	}
 
-
-	public function import_details($price_list_id)
+	public function import_details()
 	{
 		$sc = TRUE;
+		$price_list_id = $this->input->post('id');
 		$file = isset($_FILES['uploadFile']) ? $_FILES['uploadFile'] : FALSE;
 		$path = $this->config->item('upload_path') . 'special_price_list/';
-		$file  = 'uploadFile';
-		$config = array(   // initial config for upload class
+		$file = 'uploadFile';
+		$config = array(
 			"allowed_types" => "xlsx",
 			"upload_path" => $path,
 			"file_name"  => "import-special-price-list-" . date('YmdHis'),
@@ -503,159 +503,157 @@ class Special_price_list extends PS_Controller
 			$this->error = $this->upload->display_errors();
 		}
 
-		if ($sc === TRUE)
+		if($sc === TRUE)
 		{
-			$this->load->library('excel');
 			$info = $this->upload->data();
-			/// read file
-			$excel = PHPExcel_IOFactory::load($info['full_path']);
-			//get only the Cell Collection
-			$collection  = $excel->getActiveSheet()->toArray(NULL, TRUE, TRUE, TRUE);
+			$reader = new Reader();
+			$reader->open($info['full_path']);
+			$sheet = $reader->getSheetIterator()->current();
+			$expectedHeader = ['Type', 'SKU', 'Description', 'Min Qty', 'Sell Price', 'Free Qty'];
+			
+			$rows = [];
+			$isFirstRow = TRUE;
 
-			if (! empty($collection))
+			foreach ($sheet->getRowIterator() as $row) 
 			{
-				$firstRow = $collection[1]; //--- get header row for validate file format        
-
-				if (!empty($firstRow))
+				if($isFirstRow)
 				{
-					$expectedHeader = array(
-						'A' => 'Type',
-						'B' => 'SKU',
-						'C' => 'Description',
-						'D' => 'Min Qty',
-						'E' => 'Sell Price',
-						'F' => 'Free Qty'
-					);
+					$isFirstRow = FALSE;
+					$cells = $row->getCells();
+					$letters = ['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D', '5' => 'E', '6' => 'F'];
 
-					foreach ($expectedHeader as $col => $header)
+					foreach ($expectedHeader as $index => $header)
 					{
-						if ($firstRow[$col] !== $header)
+						if (!isset($cells[$index]) || $cells[$index]->getValue() !== $header)
 						{
 							$sc = FALSE;
-							$this->error = "Column {$col} should be {$header}";
-							break;
+							$this->error = "Column {$letters[$index]} should be {$header}";
+							break 2;
 						}
 					}
+
+					continue; // skip the header row
 				}
-				else
+				
+
+				$cells = $row->getCells();
+
+				$rows[] = array(
+					'A' => $cells[0]->getValue(),
+					'B' => $cells[1]->getValue(),
+					'C' => $cells[2]->getValue(),
+					'D' => $cells[3]->getValue(),
+					'E' => $cells[4]->getValue(),
+					'F' => $cells[5]->getValue()
+				);
+			}
+
+			$reader->close();
+
+			if($sc === TRUE)
+			{
+				$ds = $this->parseCollection($rows);
+
+				if(! $ds)
 				{
 					$sc = FALSE;
-					$this->error = "The first row of the file is empty. Please make sure the file format is correct.";
+					$this->error = "Failed to parse the collection";
 				}
 
-				if ($sc === TRUE)
+				if($sc === TRUE)
 				{
-					array_shift($collection);
+					$this->db->trans_begin();
 
-					$ds = $this->parseCollection($collection);
-
-					if ($ds === FALSE)
+					foreach ($ds as $item)
 					{
-						$sc = FALSE;
-					}
-					else
-					{
-						$this->db->trans_begin();
+						$item_id = $this->special_price_list_model->get_item_id($item['ItemCode'], $price_list_id);
 
-						foreach ($ds as $item)
+						if( ! empty($item_id))
 						{
-							$item_id = $this->special_price_list_model->get_item_id($item['ItemCode'], $price_list_id);
-
-							if( ! empty($item_id))
+							if( ! $this->special_price_list_model->delete_details($item_id))
 							{
-								if( ! $this->special_price_list_model->delete_details($item_id))
-								{
-									$sc = FALSE;
-									$this->error = "Failed to delete item steps";
-								}
-
-								if($sc === TRUE)
-								{
-									if( ! $this->special_price_list_model->delete_item($item_id))
-									{
-										$sc = FALSE;
-										$this->error = "Failed to delete item";
-									}
-								}
+								$sc = FALSE;
+								$this->error = "Failed to delete item steps";								
 							}
 
 							if($sc === TRUE)
 							{
-								$arr = array(
-									'price_list_id' => $price_list_id,
-									'ItemCode' => $item['ItemCode'],
-									'ItemName' => $item['ItemName'],
-									'UomCode' => $item['UomCode'],
-									'isControl' => $item['isControl'],
-									'add_by' => $this->_user->id,
-									'date_add' => now()
-								);
-
-								$id = $this->special_price_list_model->add_item($arr);
-
-								if ($id !== FALSE && ! empty($item['details']))
-								{
-									$pos = 1;
-
-									foreach ($item['details'] as $step)
-									{
-										$arr = array(
-											'step_id' => $id,
-											'name' => $step['name'],
-											'ItemCode' => $item['ItemCode'],
-											'ItemName' => $item['ItemName'],
-											'UomCode' => $item['UomCode'],
-											'Qty' => $step['Qty'],
-											'SellPrice' => $step['SellPrice'],
-											'freeQty' => $step['freeQty'],
-											'position' => $pos,
-											'update_by' => $this->_user->id
-										);
-
-										if (! $this->special_price_list_model->add_item_detail($arr))
-										{
-											$sc = FALSE;
-											$this->error = "Failed to add row details for item : {$item['ItemCode']} - {$item['ItemName']}";
-											break;
-										}
-
-										$pos++;
-									}
-								}
-								else
+								if( ! $this->special_price_list_model->delete_item($item_id))
 								{
 									$sc = FALSE;
-									$this->error = "Failed to add item : {$item['ItemCode']} - {$item['ItemName']}";
+									$this->error = "Failed to delete item";
 								}
 							}
+						}
 
-							if ($sc === FALSE)
+						if($sc === TRUE)
+						{
+							$arr = array(
+								'price_list_id' => $price_list_id,
+								'itemCode' => $item['ItemCode'],
+								'ItemName' => $item['ItemName'],
+								'UomCode' => $item['UomCode'],
+								'isControl' => $item['isControl'],
+								'add_by' => $this->_user->id,
+								'date_add' => now()
+							);
+
+							$id = $this->special_price_list_model->add_item($arr);
+
+							if($id && ! empty($item['details']))
 							{
-								break;
-							}
-						} //--- end foreach
+								$pos = 1;
 
-						if ($sc === TRUE)
-						{
-							$this->db->trans_commit();
-						}
-						else
-						{
-							$this->db->trans_rollback();
-						}
+								foreach ($item['details'] as $step)
+								{
+									$arr = array(
+										'step_id' => $id,
+										'name' => $step['name'],
+										'ItemCode' => $item['ItemCode'],
+										'ItemName' => $item['ItemName'],
+										'UomCode' => $item['UomCode'],
+										'Qty' => $step['Qty'],
+										'SellPrice' => $step['SellPrice'],
+										'freeQty' => $step['freeQty'],
+										'position' => $pos,
+										'update_by' => $this->_user->id
+									);
+
+									if (! $this->special_price_list_model->add_item_detail($arr))
+									{
+										$sc = FALSE;
+										$this->error = "Failed to add row details for item : {$item['ItemCode']} - {$item['ItemName']}";
+										break;
+									}
+
+									$pos++;
+								}
+							}
+							else
+							{
+								$sc = FALSE;
+								$this->error = "Failed to add item : {$item['ItemCode']} - {$item['ItemName']}";
+							}
+						}	
+
+						if($sc === FALSE) break;					
+					} //-- end foreach 
+
+					if($sc === TRUE)
+					{
+						$this->db->trans_commit();
+					}
+					else
+					{
+						$this->db->trans_rollback();
 					}
 				}
 			}
-			else
-			{
-				$sc = FALSE;
-				$this->error = "The file is empty. Please make sure the file format is correct.";
-			} //-- end if count limit
-		} //--- end if else
+		}
 
 		$arr = array(
 			'status' => $sc === TRUE ? 'success' : 'error',
-			'message' => $sc === TRUE ? 'Import completed' : $this->error
+			'message' => $sc === TRUE ? 'Success' : $this->error
 		);
 
 		echo json_encode($arr);
@@ -678,16 +676,14 @@ class Special_price_list extends PS_Controller
 			$i = 2; //--- start from row 2 because row 1 is header
 
 			foreach ($collection as $rs)
-			{
-				$sc = TRUE;
+			{				
 				$type = strtoupper(str_replace(array("\n", "\r"), '', trim($rs['A']))); //--- เอาตัวขึ้นบรรทัดใหม่ออก
 				$sku = str_replace(array("\n", "\r"), '', trim($rs['B'])); //--- เอาตัวขึ้นบรรทัดใหม่ออก
 				$code = $sku;
 
 				if (empty($type) or empty($sku))
 				{
-					//--- skip empty row
-					$sc = FALSE;
+					//--- skip empty row					
 					$err++;
 					$this->error .= "Row {$i} is empty or missing required fields (Type, SKU). <br>";
 					$i++;
@@ -716,8 +712,7 @@ class Special_price_list extends PS_Controller
 							);
 						}
 						else
-						{
-							$sc = FALSE;
+						{							
 							$err++;
 							$this->error .= "Row {$i} : Item code {$sku} does not exists. <br>";
 						}
@@ -727,16 +722,14 @@ class Special_price_list extends PS_Controller
 				if ($type == 'S')
 				{
 					if (empty($desc) or empty($minQty) or empty($sellPrice))
-					{
-						$sc = FALSE;
+					{						
 						$err++;
 						$this->error .= "Row {$i} : Missing required fields for step (Description, Min Qty, Sell Price). <br>";
 					}
 					else
 					{
 						if (! isset($ds[$code]))
-						{
-							$sc = FALSE;
+						{							
 							$err++;
 							$this->error .= "Row {$i} : Step without item. <br>";
 						}
@@ -748,16 +741,14 @@ class Special_price_list extends PS_Controller
 							$freeQty = floatval($freeQty);
 
 							if ($minQty <= 0)
-							{
-								$sc = FALSE;
+							{								
 								$err++;
 								$this->error .= "Row {$i} : Min Qty must be greater than 0. <br>";
 								$e++;
 							}
 
 							if ($sellPrice <= 0)
-							{
-								$sc = FALSE;
+							{								
 								$err++;
 								$this->error .= "Row {$i} : Sell Price must be greater than 0. <br>";
 								$e++;

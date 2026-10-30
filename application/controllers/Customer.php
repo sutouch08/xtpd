@@ -16,7 +16,6 @@ class Customer extends PS_Controller
     $this->load->helper('customer');
   }
 
-
   public function index()
   {
     $filter = array(
@@ -36,16 +35,15 @@ class Customer extends PS_Controller
     if ($this->input->post('search'))
     {
       redirect($this->home);
+      exit;
     }
-    else
-    {
-      $perpage = get_rows();      
-      $rows = $this->customer_model->count_rows($filter);
-      $filter['data'] = $this->customer_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
-      $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
-      $this->pagination->initialize($init);
-      $this->load->view('customer/customer_list', $filter);
-    }
+
+    $perpage = get_rows();
+    $rows = $this->customer_model->count_rows($filter);
+    $filter['data'] = $this->customer_model->get_list($filter, $perpage, $this->uri->segment($this->segment));
+    $init  = pagination_config($this->home . '/index/', $rows, $perpage, $this->segment);
+    $this->pagination->initialize($init);
+    $this->load->view('customer/customer_list', $filter);
   }
 
 

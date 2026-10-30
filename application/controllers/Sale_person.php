@@ -21,24 +21,17 @@ class Sale_person extends PS_Controller
 			'name' => get_filter('name', 'sale_person_name', '')
 		);
 
-		//--- แสดงผลกี่รายการต่อหน้า
-		$perpage = get_filter('set_rows', 'rows', 20);
-		//--- หาก user กำหนดการแสดงผลมามากเกินไป จำกัดไว้แค่ 300
-		if($perpage > 300)
+		if($this->input->post('search'))
 		{
-			$perpage = get_filter('rows', 'rows', 300);
+			redirect($this->home);
+			exit;
 		}
 
+		$perpage = get_rows();
 		$segment = 3; //-- url segment
 		$rows = $this->sale_person_model->count_rows($filter);
-
-		//--- ส่งตัวแปรเข้าไป 4 ตัว base_url ,  total_row , perpage = 20, segment = 3
+		$filter['data'] = $this->sale_person_model->get_list($filter, $perpage, $this->uri->segment($segment));
 		$init	= pagination_config($this->home.'/index/', $rows, $perpage, $segment);
-
-		$result = $this->sale_person_model->get_list($filter, $perpage, $this->uri->segment($segment));
-
-		$filter['data'] = $result;
-
 		$this->pagination->initialize($init);
 		$this->load->view('sale_person/sale_person_list', $filter);
 	}
@@ -52,7 +45,7 @@ class Sale_person extends PS_Controller
 		}
 		else
 		{
-			$this->deny_page();
+			$this->deny_page(TRUE);
 		}
 	}
 
@@ -60,7 +53,7 @@ class Sale_person extends PS_Controller
 	public function add()
 	{
 		$sc = TRUE;
-		$name = trim($this->input->post('name'));
+		$name = trim($this->input->post('name') ?? '');
 
 		if(!empty($name))
 		{
@@ -132,7 +125,7 @@ class Sale_person extends PS_Controller
 
 		if($this->pm->can_edit)
 		{
-			$name = trim($this->input->post('name'));
+			$name = trim($this->input->post('name') ?? '');
 
 			if(!empty($name))
 			{
@@ -197,15 +190,7 @@ class Sale_person extends PS_Controller
 
   public function clear_filter()
 	{
-		$filter = array(
-			'sale_person_name'
-		);
-
-		clear_filter($filter);
-		echo 'done';
+		return clear_filter('sale_person_name');
 	}
 
-}//--- end class
-
-
- ?>
+}

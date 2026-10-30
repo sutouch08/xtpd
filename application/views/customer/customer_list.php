@@ -115,10 +115,10 @@
           <?php $sales_teams = sales_team_array(); ?>
           <?php $sales_persons = sales_person_array(); ?>
           <?php foreach ($data as $rs) : ?>
-            <?php $department = isset($departments[$rs->U_TPD_BI_Department]) ? $departments[$rs->U_TPD_BI_Department] : NULL; ?>
-            <?php $area = isset($areas[$rs->U_TPD_BI_AreaName]) ? $areas[$rs->U_TPD_BI_AreaName] : NULL; ?>
-            <?php $sales_team = isset($sales_teams[$rs->U_TPD_BI_SalesTeam]) ? $sales_teams[$rs->U_TPD_BI_SalesTeam] : NULL; ?>
-            <?php $sales_person = isset($sales_persons[$rs->SlpCode]) ? $sales_persons[$rs->SlpCode] : NULL; ?>
+            <?php $department = isset($departments[$rs->U_TPD_BI_Department ?? '']) ? $departments[$rs->U_TPD_BI_Department] : NULL; ?>
+            <?php $area = isset($areas[$rs->U_TPD_BI_AreaName ?? '']) ? $areas[$rs->U_TPD_BI_AreaName] : NULL; ?>
+            <?php $sales_team = isset($sales_teams[$rs->U_TPD_BI_SalesTeam ?? '']) ? $sales_teams[$rs->U_TPD_BI_SalesTeam] : NULL; ?>
+            <?php $sales_person = isset($sales_persons[$rs->SlpCode ?? '']) ? $sales_persons[$rs->SlpCode] : NULL; ?>
             <tr class="font-size-12">
               <td class="middle text-center">
                 <button type="button" class="btn btn-minier btn-info" title="View Details" onclick="viewDetail(<?php echo $rs->id; ?>)">

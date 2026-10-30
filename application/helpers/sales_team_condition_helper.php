@@ -1,10 +1,9 @@
 <?php
-function select_sales_team_condition($id = NULL)
+function select_sales_team_condition($id = '')
 {
   $sc = "";
   $ci =& get_instance();
   $ci->load->model('sales_team_condition_model');
-
   $team = $ci->sales_team_condition_model->get_all();
 
   if( ! empty($team))
@@ -19,32 +18,33 @@ function select_sales_team_condition($id = NULL)
 }
 
 
-function select_sale_team($id = NULL)
+if(!function_exists('select_sale_team'))
 {
-  $sc = "";
-  $ci =& get_instance();
-  $ci->load->model('sales_team_model');
-
-  $teams = $ci->sales_team_model->get_all();
-
-  if(!empty($teams))
+  function select_sale_team($id = '')
   {
-    foreach($teams as $rs)
-    {
-      $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
-    }
-  }
+    $sc = "";
+    $ci =& get_instance();
+    $ci->load->model('sales_team_model');
+    $teams = $ci->sales_team_model->get_all();
 
-  return $sc;
+    if(!empty($teams))
+    {
+      foreach($teams as $rs)
+      {
+        $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
+      }
+    }
+
+    return $sc;
+  }
 }
 
 
-function select_department($id = NULL)
+function select_department($id = '')
 {
   $sc = "";
   $ci =& get_instance();
   $ci->load->model('department_model');
-
   $rows = $ci->department_model->get_all();
 
   if(!empty($rows))
@@ -59,62 +59,62 @@ function select_department($id = NULL)
 }
 
 
-function select_sale_person($id = NULL)
+if(!function_exists('select_sale_person'))
 {
-  $sc = "";
-  $ci =& get_instance();
-  $ci->load->model('sale_person_model');
-
-  $list = $ci->sale_person_model->get_all();
-
-  if(!empty($list))
+  function select_sale_person($id = '')
   {
-    foreach($list as $rs)
+    $sc = "";
+    $ci =& get_instance();
+    $ci->load->model('sale_person_model');
+    $list = $ci->sale_person_model->get_all();
+
+    if(!empty($list))
     {
-      $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
+      foreach($list as $rs)
+      {
+        $sc .= '<option value="'.$rs->id.'" '.is_selected($rs->id, $id).'>'.$rs->name.'</option>';
+      }
     }
-  }
 
-  return $sc;
+    return $sc;
+  }
 }
 
 
-function sale_person_name($id)
+if(!function_exists('sale_person_name'))
 {
-  $ci =& get_instance();
-  $ci->load->model('sale_person_model');
-
-  $rs = $ci->sale_person_model->get($id);
-
-  if(!empty($rs))
+  function sale_person_name($id = '')
   {
-    return $rs->name;
+    $ci =& get_instance();
+    $ci->load->model('sale_person_model');
+    return $ci->sale_person_model->get_name($id);
   }
-
-  return NULL;
 }
 
 
-function department_name($id)
+if(!function_exists('department_name'))
 {
-  $ci =& get_instance();
-  $ci->load->model('department_model');
-  return $ci->department_model->get_name($id);
+  function department_name($id = '')
+  {
+    $ci =& get_instance();
+    $ci->load->model('department_model');
+    return $ci->department_model->get_name($id);
+  }
 }
 
-
-function sales_team_name($id)
+if(!function_exists('sales_team_name'))
 {
-  $ci =& get_instance();
-  $ci->load->model('sales_team_model');
-  return $ci->sales_team_model->get_name($id);
+  function sales_team_name($id = '')
+  {
+    $ci =& get_instance();
+    $ci->load->model('sales_team_model');
+    return $ci->sales_team_model->get_name($id);
+  }
 }
 
-function sales_team_condition_name($id)
+function sales_team_condition_name($id = '')
 {
   $ci =& get_instance();
   $ci->load->model('sales_team_condition_model');
   return $ci->sales_team_condition_model->get_name($id);
 }
-
-?>

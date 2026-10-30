@@ -19,6 +19,4 @@ class Clear_sync_logs extends CI_Controller
     $this->db->where('date_upd <', $date)->delete('sync_logs');
   }
 
-} //--- end class
-
- ?>
+} 
