@@ -1,4 +1,4 @@
-const HOME = `${BASE_URL}price_list_item_check/`;
+var HOME = `${BASE_URL}price_list_item_check/`;
 
 function changePriceListType() {
   let pType = $('#price-list-type').val();

@@ -1,4 +1,4 @@
-const HOME = `${BASE_URL}product_lot_check/`;
+var HOME = `${BASE_URL}product_lot_check/`;
 
 function resetItemList() {
   $('#item').html('<option value="">Select Item</option>');
