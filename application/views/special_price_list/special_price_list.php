@@ -81,7 +81,7 @@
 					<?php $no = $this->uri->segment($this->segment) + 1; ?>
 					<?php $typeName = price_list_type_array(); ?>
 					<?php foreach ($data as $rs) : ?>
-						<?php $rs->type_name = isset($typeName[$rs->type_id]) ? $typeName[$rs->type_id] : ''; ?>
+						<?php $rs->type_name = (! empty($rs->type_id) && isset($typeName[$rs->type_id])) ? $typeName[$rs->type_id] : ''; ?>
 						<?php $last_modified = empty($rs->date_upd) ? $rs->date_add : $rs->date_upd; ?>
 						<?php $modified_by = empty($rs->update_by) ? uname($rs->add_by) : uname($rs->update_by); ?>
 						<tr>
