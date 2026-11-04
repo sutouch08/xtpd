@@ -1642,7 +1642,13 @@ class Orders extends PS_Controller
 					$ds['approval_status'] = "ไม่อนุมัติ";
 					$ds['approval_color'] = "red";
 					$ds['ApproveBy'] = "Rejected By  {$doc->Approver}  @ " . thai_date($doc->ApproveDate, TRUE);
-				}				
+				}
+
+				if($doc->isCancel == 0 && $doc->Approved == 'A')
+				{					
+					$ds['approval_color'] = "green";
+					$ds['ApproveBy'] = "Approved By  {$doc->Approver}  @ " . thai_date($doc->ApproveDate, TRUE);
+				}
 
 				if ($doc->promotion_id)
 				{
