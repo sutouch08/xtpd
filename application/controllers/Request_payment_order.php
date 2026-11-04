@@ -239,6 +239,7 @@ class Request_payment_order extends PS_Controller
 
   public function open_file($code, $filename)
   {
+    $filename = rawurldecode($filename);
     $path = $this->config->item('user_files_path') . 'request_payment/' . $code . '/' . $filename;
 
     if (!file_exists($path))
@@ -262,6 +263,7 @@ class Request_payment_order extends PS_Controller
   public function download_file($code, $filename)
   {
     // ป้องกันการโจมตีด้วย ../
+    $filename = rawurldecode($filename);
     $filename = basename($filename);
 
     // โฟลเดอร์เก็บไฟล์
@@ -304,7 +306,7 @@ class Request_payment_order extends PS_Controller
     if( ! empty($code) && ! empty($filename))
     {
       // ป้องกันการโจมตีด้วย ../
-      $filename = basename($filename);
+      $filename = basename(rawurldecode($filename));
 
       // โฟลเดอร์เก็บไฟล์
       $path = $this->config->item('user_files_path') . 'request_payment/' . $code . '/' . $filename;

@@ -80,9 +80,9 @@
             <tr id="row-<?php echo $no; ?>">
               <td class="middle text-center no"><?php echo $no; ?></td>
               <td class="middle">
-                <button type="button" class="btn btn-white btn-minier btn-info" title="View File" onclick="viewFile('<?php echo $data->code; ?>', '<?php echo $rs->name; ?>')"><i class="fa fa-eye"></i></button>
-                <button type="button" class="btn btn-white btn-minier btn-danger" title="Delete File" onclick="confirmDeleteFile(<?php echo $no; ?>, '<?php echo $data->code; ?>', '<?php echo $rs->name; ?>')"><i class="fa fa-trash"></i></button>
-                <button type="button" class="btn btn-white btn-minier btn-success" title="Download File" onclick="downloadFile('<?php echo $data->code; ?>', '<?php echo $rs->name; ?>')"><i class="fa fa-download"></i></button>
+                <button type="button" class="btn btn-white btn-minier btn-info" title="View File" onclick="viewFile('<?php echo $data->code; ?>', '<?php echo rawurlencode($rs->name); ?>')"><i class="fa fa-eye"></i></button>
+                <button type="button" class="btn btn-white btn-minier btn-danger" title="Delete File" onclick="confirmDeleteFile(<?php echo $no; ?>, '<?php echo $data->code; ?>', '<?php echo rawurlencode($rs->name); ?>')"><i class="fa fa-trash"></i></button>
+                <button type="button" class="btn btn-white btn-minier btn-success" title="Download File" onclick="downloadFile('<?php echo $data->code; ?>', '<?php echo rawurlencode($rs->name); ?>')"><i class="fa fa-download"></i></button>
               </td>
               <td class="middle">
                 <?php echo $rs->name; ?>
