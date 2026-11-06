@@ -1179,6 +1179,9 @@ class Orders extends PS_Controller
 								}
 							}
 
+							$lineTotal = $rs->Qty * $sellPrice;
+							$lineTotalAfDisc = $lineTotal - ($lineTotal * (floatval($header->DiscPrcnt) * 0.01));
+
 							$arr = array(
 								'order_code' => $code,
 								'LineNum' => $row,
@@ -1192,7 +1195,8 @@ class Orders extends PS_Controller
 								'VatGroup' => empty($header->VatGroup) ? $item->VatCode : $header->VatGroup,
 								'VatRate' => empty($header->VatGroup) ? $item->Rate : $header->VatRate,
 								'VatAmount' => $rs->VatAmount,
-								'LineTotal' => $rs->Qty * $sellPrice,
+								'LineTotal' => $lineTotal,
+								'LineTotalAfDisc' => $lineTotalAfDisc,
 								'isControl' => $rs->isControl,
 								'discount_sales' => $this->disSale ? $rs->discount_sales : 0,
 								'WhsCode' => empty($rs->WhsCode) ? $dfWhsCode : $rs->WhsCode,
@@ -1716,7 +1720,7 @@ class Orders extends PS_Controller
 								'amount' => number($rs->LineTotal, 2),
 								'dis' => $rs->discount_sales == 1 ? '<i class="fa fa-check blue"></i>' : '',
 								'lineText' => $rs->LineText,
-								'openQty' => round($open_qty, 2),
+								'openQty' => round($open_qty ?? 0, 2),
 								'DoNo' => $DoNo,
 								'InvNo' => $InvNo,
 								'InvDate' => empty($InvNo) ? NULL : $InvDate,

@@ -24,10 +24,11 @@ class Main extends PS_Controller
 			$fromDate = date('01-m-Y');
 			$toDate = date('t-m-Y');
 			$user_id = $this->_user->id;
-			$ds['sumOrdered'] = round($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumPending'] = round($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumApproved'] = round($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumRejected'] = round($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ex = $this->order_report_model->is_exists_user($user_id, $fromDate, $toDate);
+			$ds['sumOrdered'] = ! $ex ? 0 : round($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumPending'] = ! $ex ? 0 : round($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumApproved'] = ! $ex ? 0 : round($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumRejected'] = ! $ex ? 0 : round($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
 			$ds['bi_link'] = $this->_user->bi_link == 1 ? $this->user_model->get_bi_link($this->_user->sale_id) : NULL;
 		}
 
@@ -45,10 +46,11 @@ class Main extends PS_Controller
 
 		if(!empty($user_id))
 		{
-			$ds['sumOrdered'] = number($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumPending'] = number($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumApproved'] = number($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
-			$ds['sumRejected'] = number($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ex = $this->order_report_model->is_exists_user($user_id, $fromDate, $toDate);
+			$ds['sumOrdered'] = ! $ex ? 0 : number($this->order_report_model->get_sum_order($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumPending'] = ! $ex ? 0 : number($this->order_report_model->get_sum_pending($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumApproved'] = ! $ex ? 0 : number($this->order_report_model->get_sum_approved($user_id, $fromDate, $toDate) ?? 0, 2);
+			$ds['sumRejected'] = ! $ex ? 0 : number($this->order_report_model->get_sum_rejected($user_id, $fromDate, $toDate) ?? 0, 2);
 		}
 		else
 		{
@@ -71,7 +73,8 @@ class Main extends PS_Controller
 
 		if(!empty($user_id))
 		{
-			$report = $this->order_report_model->get_report_by_user_id($user_id, $fromDate, $toDate, $status);
+			$ex = $this->order_report_model->is_exists_user($user_id, $fromDate, $toDate);
+			$report = ! $ex ? NULL : $this->order_report_model->get_report_by_user_id($user_id, $fromDate, $toDate, $status);
 
 			if(!empty($report))
 			{
@@ -79,6 +82,7 @@ class Main extends PS_Controller
 				$terms = $this->user_model->get_all_payment_term_array();
 				$totalQty = 0;
 				$totalAmount = 0;
+				$totalAmountAfterDiscount = 0;
 
 				foreach($report as $rs)
 				{
@@ -97,6 +101,7 @@ class Main extends PS_Controller
 						'SellPrice' => number($rs->SellPrice, 2),
 						'DiscPrcnt' => $rs->DiscPrcnt.' %',
 						'Amount' => number($rs->LineTotal, 2),
+						'AmountAfterDiscount' => number($rs->LineTotalAfDisc, 2),
 						'PoNo' => $rs->NumAtCard,
 						'Approver' => $rs->Approver,
 						'Approval_status' => $this->approval_status_label($rs->Approved, $rs->Approval_status),
@@ -109,11 +114,13 @@ class Main extends PS_Controller
 					$no++;
 					$totalQty += $rs->Qty;
 					$totalAmount += $rs->LineTotal;
+					$totalAmountAfterDiscount += $rs->LineTotalAfDisc;
 				}
 
 				$arr = array(
 					'totalQty' => number($totalQty, 2),
-					'totalAmount' => number($totalAmount, 2)
+					'totalAmount' => number($totalAmount, 2),
+					'totalAmountAfterDiscount' => number($totalAmountAfterDiscount, 2)
 				);
 
 				array_push($ds, $arr);
