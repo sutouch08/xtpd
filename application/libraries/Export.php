@@ -50,7 +50,7 @@ class Export
 							'DocType' => 'I',
 							'CANCELED' => 'N',
 							'DocDate' => date('Y-m-d H:i:s'),
-							'DocDueDate' => date('Y-m-d H:i:s'),
+							'DocDueDate' => date('Y-m-d H:i:s', strtotime('+3 days')),
 							'CardCode' => $order->CardCode,
 							'CardName' => $order->CardName,
 							'PayToCode' => $order->PayToCode,
