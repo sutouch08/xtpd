@@ -142,7 +142,7 @@ class Orders extends PS_Controller
 		if (! empty($card))
 		{
 			$credit = empty($card->CustCode) ? $this->customer_model->get_credit_details($card->CardCode) : $this->customer_model->get_credit_details_by_hCode($card->CustCode);
-			$CreditLine = $card->isRegular == 1 ? floatval($credit->CreditLine) : floatval(getConfig('GLOBAL_CREDIT_LINE'));
+			$CreditLine = $card->isRegular == 1 ? (empty($credit) ? 0 : floatval($credit->CreditLine)) : floatval(getConfig('GLOBAL_CREDIT_LINE'));
 			$overdue = $this->orders_model->is_over_due($card->CardCode, $card->CustCode) ? 1 : 0;
 
 			if (! empty($credit))
@@ -187,7 +187,7 @@ class Orders extends PS_Controller
 		if (! empty($card))
 		{
 			$credit = empty($card->CustCode) ? $this->customer_model->get_credit_details($card->CardCode) : $this->customer_model->get_credit_details_by_hCode($card->CustCode);
-			$CreditLine = $card->isRegular == 1 ? floatval($credit->CreditLine) : floatval(getConfig('GLOBAL_CREDIT_LINE'));
+			$CreditLine = $card->isRegular == 1 ? (empty($credit) ? 0 : floatval($credit->CreditLine)) : floatval(getConfig('GLOBAL_CREDIT_LINE'));
 			
 			if (! empty($credit))
 			{

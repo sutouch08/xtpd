@@ -997,8 +997,7 @@ async function previewOrder() {
 }
 
 
-function checkApprove(data) {
-	console.log(data);
+function checkApprove(data) {	
 	$.ajax({
 		url:HOME + 'check_approve',
 		type:'GET',
@@ -1020,22 +1019,24 @@ function checkApprove(data) {
 				$('#previewModal').modal('show');
 			}
 			else {
-				swal({
-			    title:'',
-			    text:rs,
-			    type:'warning',
-			    showCancelButton: true,
-					confirmButtonText: 'ดำเนินการต่อ',
-					cancelButtonText: 'กลับไปแก้ไข',
-					closeOnConfirm: true
-			  },function(){
-					setTimeout(() => {
-						var source = $('#preview-template').html();
-						var output = $('#result');
-						render(source, data, output);
-						$('#previewModal').modal('show');
-					}, 100);
-			  })
+				setTimeout(() => {
+					swal({
+						title: '',
+						text: rs,
+						type: 'warning',
+						showCancelButton: true,
+						confirmButtonText: 'ดำเนินการต่อ',
+						cancelButtonText: 'กลับไปแก้ไข',
+						closeOnConfirm: true
+					}, function () {
+						setTimeout(() => {
+							var source = $('#preview-template').html();
+							var output = $('#result');
+							render(source, data, output);
+							$('#previewModal').modal('show');
+						}, 100);
+					})
+				}, 100);				
 			}
 		}
 	})
