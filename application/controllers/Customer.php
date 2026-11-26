@@ -80,6 +80,11 @@ class Customer extends PS_Controller
 
   public function syncData()
   {
+    ini_set('max_execution_time', 300); // เพิ่มเวลาในการประมวลผลสูงสุดเป็น 300 วินาที
+    ini_set('memory_limit', '512M'); // เพิ่มขนาดหน่วยความจำสูงสุดเป็น 512MB
+    ini_set('sqlsrv.ClientBufferMaxKBSize', '2097152'); // Setting to 2048M
+    ini_set('sqlsrv.client_buffer_max_kb_size', '2097152'); // Setting to 512M - for pdo_sqlsrv
+    
     $sc = TRUE;
     $all = $this->input->post('all') == 1 ? TRUE : FALSE;
     $last_sync = $all ? date('Y-m-d H:i:s', strtotime('2000-01-01 00:00:00')) : $this->customer_model->get_last_sync_date();
