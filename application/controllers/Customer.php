@@ -115,7 +115,8 @@ class Customer extends PS_Controller
           'vatRate' => empty($rs->Rate) ? 0.00 : $rs->Rate,
           'custType' => $custType, //-- Q, V
           'isRegular' => $isRegular,
-          'registerDate' => $rs->registerDate
+          'registerDate' => $rs->registerDate,
+          'date_upd' => now()
         );
 
         if (! $this->customer_model->is_exists_id($rs->DocEntry))
